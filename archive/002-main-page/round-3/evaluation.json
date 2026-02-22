@@ -1,0 +1,13 @@
+{
+  "winner": "a",
+  "scores": {
+    "visual_appeal": 7,
+    "layout": 8,
+    "dark_mode": 7,
+    "mobile": 7,
+    "consistency": 8
+  },
+  "liked": ["A의 히어로 레이아웃 (좌정렬 + 워터마크 + 스탯)", "전반적인 레이아웃 구성"],
+  "disliked": ["히어로 섹션 디자인이 너무 과함", "다크모드 토글이 이모지 사용", "히어로 버튼 순서 (동아리 소개가 primary)"],
+  "next_round": ["히어로 장식 요소 톤다운 (링, 오브, 노이즈 등 줄이기)", "가입 신청 버튼을 primary로, 동아리 소개를 outline으로 변경", "다크모드 토글 아이콘을 SVG로 변경"]
+}

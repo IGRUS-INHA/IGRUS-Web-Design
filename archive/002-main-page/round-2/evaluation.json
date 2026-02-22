@@ -1,0 +1,13 @@
+{
+  "winner": "mixed",
+  "scores": {
+    "visual_appeal": 7,
+    "layout": 8,
+    "dark_mode": 7,
+    "mobile": 7,
+    "consistency": 8
+  },
+  "liked": ["A의 브랜드 그라데이션 히어로 배경", "A의 좌정렬 + 워터마크 구성", "A의 스탯 카운터", "B의 글래스모피즘 카드 접근"],
+  "disliked": [],
+  "next_round": ["round-1 B의 레이아웃 디테일 + round-2 A의 히어로를 합성"]
+}

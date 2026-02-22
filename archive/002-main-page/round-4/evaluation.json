@@ -1,0 +1,13 @@
+{
+  "winner": "b",
+  "scores": {
+    "visual_appeal": 8,
+    "layout": 8,
+    "dark_mode": 7,
+    "mobile": 7,
+    "consistency": 8
+  },
+  "liked": ["B의 깔끔한 미니멀 히어로 (장식 없이 그라데이션만)", "SVG 다크모드 토글", "버튼 순서 변경"],
+  "disliked": ["히어로 스탯 정보 (역사, 누적 부원, 프로젝트) 불필요"],
+  "next_round": ["히어로 스탯 섹션 제거"]
+}

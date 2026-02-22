@@ -1,0 +1,13 @@
+{
+  "winner": "mixed",
+  "scores": {
+    "visual_appeal": 6,
+    "layout": 7,
+    "dark_mode": 7,
+    "mobile": 6,
+    "consistency": 7
+  },
+  "liked": ["A의 사이드바 디자인", "A의 아이콘 백그라운드 없는 점", "B의 상단바 hover 밑줄", "B의 공지+행사 2단 레이아웃", "B의 바로가기 hover 효과"],
+  "disliked": ["양쪽 모두 히어로 섹션 디자인"],
+  "next_round": ["히어로 섹션 완전 개선", "A 사이드바 + B 헤더/콘텐츠 조합"]
+}
