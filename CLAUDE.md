@@ -56,3 +56,6 @@ IGRUS 웹사이트의 HTML/CSS 디자인 시안을 생성하기 위한 디자인
 - 간격: s1(4px), s2(8px), s3(12px), s4(16px), s5(24px), s6(32px), s7(48px), s8(56px)
 - 라운딩: r1(4px), r2(8px), r3(12px), r4(16px), full(100px)
 - 레이아웃: Sidebar + Header + Main Content, max-width 1280px
+
+## 커밋 & PR 규칙
+- 메시지에 Co-Authored-By Claude 를 작성하지 말 것
