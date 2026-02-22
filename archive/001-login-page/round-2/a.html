@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS — 로그인</title>
+  <!-- Inter 폰트 로드 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== 리셋 ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ===== 디자인 토큰 ===== */
+    :root {
+      /* 브랜드 컬러 스케일 */
+      --brand-l1: #E6F6F5;
+      --brand-l2: #B3E5E2;
+      --brand-l3: #66CBC5;
+      --brand-l4: #03A69E;
+      --brand-l5: #03958E;
+      --brand-l6: #027A75;
+      --brand-l7: #015F5B;
+      --brand-l8: #013E3B;
+
+      /* 그레이 스케일 */
+      --gray-1: #F8F9FA;
+      --gray-2: #E9ECEF;
+      --gray-3: #DEE2E6;
+      --gray-4: #ADB5BD;
+      --gray-5: #6C757D;
+      --gray-6: #495057;
+      --gray-7: #343A40;
+      --gray-8: #212529;
+
+      /* 시멘틱 토큰 — 라이트 */
+      --background: #FFFFFF;
+      --foreground: #212529;
+      --card: #FFFFFF;
+      --card-foreground: #212529;
+      --primary: #03A69E;
+      --primary-foreground: #FFFFFF;
+      --secondary: #F8F9FA;
+      --secondary-foreground: #495057;
+      --muted: #F8F9FA;
+      --muted-foreground: #6C757D;
+      --accent: #E6F6F5;
+      --accent-foreground: #03958E;
+      --border: #DEE2E6;
+      --input: #E9ECEF;
+      --ring: #03A69E;
+      --destructive: #DC3545;
+
+      /* 간격 */
+      --s1: 4px;
+      --s2: 8px;
+      --s3: 12px;
+      --s4: 16px;
+      --s5: 24px;
+      --s6: 32px;
+      --s7: 48px;
+      --s8: 56px;
+
+      /* 라운딩 */
+      --r1: 4px;
+      --r2: 8px;
+      --r3: 12px;
+      --r4: 16px;
+      --r-full: 100px;
+    }
+
+    /* 다크모드 토큰 */
+    .dark {
+      --background: #212529;
+      --foreground: #F8F9FA;
+      --card: #343A40;
+      --card-foreground: #F8F9FA;
+      --primary: #66CBC5;
+      --primary-foreground: #212529;
+      --secondary: #343A40;
+      --secondary-foreground: #E9ECEF;
+      --muted: #343A40;
+      --muted-foreground: #ADB5BD;
+      --accent: #015F5B;
+      --accent-foreground: #E6F6F5;
+      --border: #495057;
+      --input: #343A40;
+      --ring: #66CBC5;
+    }
+
+    /* ===== 기본 스타일 ===== */
+    html {
+      font-family: 'Inter', sans-serif;
+      color: var(--foreground);
+      background: var(--background);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ===== 스크롤바 스타일 ===== */
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--background);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(3, 166, 158, 0.5);
+      border-radius: var(--r-full);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(3, 166, 158, 0.7);
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(102, 203, 197, 0.5);
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: rgba(102, 203, 197, 0.7);
+    }
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(3, 166, 158, 0.5) var(--background);
+    }
+
+    /* ===== 배경 레이어 시스템 ===== */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* 레이어 1: 브랜드 컬러 래디얼 글로우 (우상단) */
+    .bg-glow-primary {
+      background: radial-gradient(
+        ellipse 70% 60% at 75% 20%,
+        rgba(3, 166, 158, 0.12) 0%,
+        transparent 70%
+      );
+    }
+    .dark .bg-glow-primary {
+      background: radial-gradient(
+        ellipse 70% 60% at 75% 20%,
+        rgba(102, 203, 197, 0.08) 0%,
+        transparent 70%
+      );
+    }
+
+    /* 레이어 2: 보조 글로우 (좌하단) */
+    .bg-glow-secondary {
+      background: radial-gradient(
+        ellipse 50% 45% at 20% 85%,
+        rgba(3, 166, 158, 0.08) 0%,
+        transparent 65%
+      );
+    }
+    .dark .bg-glow-secondary {
+      background: radial-gradient(
+        ellipse 50% 45% at 20% 85%,
+        rgba(102, 203, 197, 0.05) 0%,
+        transparent 65%
+      );
+    }
+
+    /* 레이어 3: 도트 그리드 패턴 (32px 간격) — 래디얼 마스크 적용 */
+    .bg-dots {
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(3, 166, 158, 0.18) 1px, transparent 1px);
+      background-size: 32px 32px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 75%);
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 75%);
+    }
+    .dark .bg-dots {
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(102, 203, 197, 0.12) 1px, transparent 1px);
+    }
+
+    /* 레이어 4: 노이즈/그레인 텍스처 (CSS 전용) */
+    .bg-noise {
+      opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+    .dark .bg-noise {
+      opacity: 0.2;
+    }
+
+    /* 수평 그라데이션 악센트 라인 */
+    .bg-accent-line {
+      position: fixed;
+      top: 38%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        90deg,
+        transparent 5%,
+        rgba(3, 166, 158, 0.15) 30%,
+        rgba(3, 166, 158, 0.25) 50%,
+        rgba(3, 166, 158, 0.15) 70%,
+        transparent 95%
+      );
+    }
+    .dark .bg-accent-line {
+      background: linear-gradient(
+        90deg,
+        transparent 5%,
+        rgba(102, 203, 197, 0.1) 30%,
+        rgba(102, 203, 197, 0.18) 50%,
+        rgba(102, 203, 197, 0.1) 70%,
+        transparent 95%
+      );
+    }
+
+    /* ===== 장식 요소: 플로팅 링 ===== */
+    .floating-ring {
+      position: fixed;
+      border-radius: 50%;
+      border: 2px solid rgba(3, 166, 158, 0.15);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .dark .floating-ring {
+      border-color: rgba(102, 203, 197, 0.1);
+    }
+
+    .ring-1 {
+      width: 200px;
+      height: 200px;
+      top: 8%;
+      right: 12%;
+      animation: float-ring-1 14s ease-in-out infinite;
+    }
+    .ring-2 {
+      width: 140px;
+      height: 140px;
+      bottom: 15%;
+      left: 8%;
+      animation: float-ring-2 18s ease-in-out infinite;
+    }
+    .ring-3 {
+      width: 90px;
+      height: 90px;
+      top: 55%;
+      right: 8%;
+      animation: float-ring-3 12s ease-in-out infinite;
+    }
+
+    @keyframes float-ring-1 {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(-12px, 18px) rotate(60deg); }
+      66% { transform: translate(8px, -10px) rotate(120deg); }
+    }
+    @keyframes float-ring-2 {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(15px, -12px) rotate(-45deg); }
+      66% { transform: translate(-8px, 16px) rotate(-90deg); }
+    }
+    @keyframes float-ring-3 {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-10px, 14px) rotate(90deg); }
+    }
+
+    /* 카드 뒤 글로우 오브 (후광 효과) */
+    .card-glow {
+      position: fixed;
+      width: 480px;
+      height: 480px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(3, 166, 158, 0.12) 0%,
+        rgba(3, 166, 158, 0.04) 40%,
+        transparent 70%
+      );
+      z-index: 0;
+      pointer-events: none;
+      animation: glow-pulse 6s ease-in-out infinite;
+    }
+    .dark .card-glow {
+      background: radial-gradient(
+        circle,
+        rgba(102, 203, 197, 0.1) 0%,
+        rgba(102, 203, 197, 0.03) 40%,
+        transparent 70%
+      );
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    /* 모바일에서 장식 숨김 */
+    @media (max-width: 767px) {
+      .floating-ring,
+      .card-glow,
+      .bg-accent-line {
+        display: none;
+      }
+    }
+
+    /* 접근성: 모션 감소 */
+    @media (prefers-reduced-motion: reduce) {
+      .floating-ring,
+      .card-glow {
+        animation: none !important;
+      }
+    }
+
+    /* ===== 다크모드 토글 ===== */
+    .theme-toggle {
+      position: fixed;
+      top: var(--s4);
+      right: var(--s4);
+      z-index: 100;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      cursor: pointer;
+      color: var(--foreground);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .theme-toggle:hover {
+      background: var(--accent);
+      color: var(--accent-foreground);
+    }
+    .theme-toggle:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+    /* 아이콘 전환: 라이트에서 달 표시, 다크에서 해 표시 */
+    .icon-sun { display: none; }
+    .icon-moon { display: block; }
+    .dark .icon-sun { display: block; }
+    .dark .icon-moon { display: none; }
+
+    /* ===== 로그인 카드 ===== */
+    .login-card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      margin: var(--s5);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r4);
+      overflow: hidden;
+      /* 다중 레이어 그림자: 미세 + 중간 + 확산 */
+      box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        0 12px 40px rgba(0, 0, 0, 0.08);
+      transition: box-shadow 0.3s, border-color 0.3s;
+    }
+    .dark .login-card {
+      box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.25),
+        0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 카드 상단 악센트 바 */
+    .card-accent-bar {
+      height: 3px;
+      background: linear-gradient(
+        90deg,
+        var(--brand-l6),
+        var(--brand-l4),
+        var(--brand-l3)
+      );
+    }
+
+    /* 카드 내부 콘텐츠 */
+    .card-body {
+      padding: var(--s6) var(--s6) var(--s5);
+    }
+
+    /* 모바일 전체 너비 */
+    @media (max-width: 767px) {
+      .login-card {
+        max-width: none;
+        margin: var(--s4);
+        border-radius: var(--r3);
+      }
+      .card-body {
+        padding: var(--s5) var(--s4) var(--s4);
+      }
+    }
+
+    /* ===== 로고 영역 ===== */
+    .logo-area {
+      text-align: center;
+      margin-bottom: var(--s6);
+    }
+    .logo-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: var(--s3);
+      color: var(--primary);
+    }
+    .logo-icon svg {
+      width: 40px;
+      height: 40px;
+    }
+    .logo-title {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--card-foreground);
+      letter-spacing: -0.01em;
+    }
+    .logo-subtitle {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--muted-foreground);
+      margin-top: var(--s1);
+    }
+
+    /* ===== 폼 스타일 ===== */
+    .form-group {
+      margin-bottom: var(--s4);
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--card-foreground);
+      margin-bottom: var(--s2);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+    .form-input {
+      display: block;
+      width: 100%;
+      height: 44px;
+      padding: 0 var(--s3);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--card-foreground);
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input::placeholder {
+      color: var(--gray-4);
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3, 166, 158, 0.15);
+    }
+    .dark .form-input:focus {
+      box-shadow: 0 0 0 3px rgba(102, 203, 197, 0.15);
+    }
+    .form-input:focus-visible {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3, 166, 158, 0.15);
+    }
+    .dark .form-input:focus-visible {
+      box-shadow: 0 0 0 3px rgba(102, 203, 197, 0.15);
+    }
+
+    /* 비밀번호 토글 버튼 */
+    .password-wrapper {
+      position: relative;
+    }
+    .password-wrapper .form-input {
+      padding-right: 44px;
+    }
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: var(--s3);
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted-foreground);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s1);
+      border-radius: var(--r1);
+      transition: color 0.2s;
+    }
+    .password-toggle:hover {
+      color: var(--card-foreground);
+    }
+    .password-toggle:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+    .password-toggle svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ===== 로그인 버튼 ===== */
+    .btn-login {
+      display: block;
+      width: 100%;
+      height: 44px;
+      margin-top: var(--s5);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary-foreground);
+      background: var(--primary);
+      border: none;
+      border-radius: var(--r2);
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+    .btn-login:hover {
+      background: var(--brand-l5);
+      box-shadow: 0 0 0 4px rgba(3, 166, 158, 0.18), 0 4px 16px rgba(3, 166, 158, 0.25);
+    }
+    .dark .btn-login:hover {
+      background: var(--brand-l2);
+      box-shadow: 0 0 0 4px rgba(102, 203, 197, 0.18), 0 4px 16px rgba(102, 203, 197, 0.2);
+    }
+    .btn-login:active {
+      transform: scale(0.98);
+    }
+    .btn-login:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    /* ===== 구분선 ===== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      margin: var(--s5) 0;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      white-space: nowrap;
+    }
+
+    /* ===== 회원가입 링크 ===== */
+    .register-link {
+      text-align: center;
+    }
+    .register-link span {
+      font-size: 14px;
+      color: var(--muted-foreground);
+    }
+    .register-link a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--primary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .register-link a:hover {
+      color: var(--brand-l6);
+      text-decoration: underline;
+    }
+    .dark .register-link a:hover {
+      color: var(--brand-l2);
+    }
+    .register-link a:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+      border-radius: var(--r1);
+    }
+
+    /* ===== 전체 전환 애니메이션 ===== */
+    html {
+      transition: background 0.3s, color 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 배경 레이어 1: 우상단 브랜드 글로우 -->
+  <div class="bg-layer bg-glow-primary" aria-hidden="true"></div>
+
+  <!-- 배경 레이어 2: 좌하단 보조 글로우 -->
+  <div class="bg-layer bg-glow-secondary" aria-hidden="true"></div>
+
+  <!-- 배경 레이어 3: 도트 그리드 -->
+  <div class="bg-layer bg-dots" aria-hidden="true"></div>
+
+  <!-- 배경 레이어 4: 노이즈 텍스처 -->
+  <div class="bg-layer bg-noise" aria-hidden="true"></div>
+
+  <!-- 수평 악센트 라인 -->
+  <div class="bg-accent-line" aria-hidden="true"></div>
+
+  <!-- 플로팅 링 장식 -->
+  <div class="floating-ring ring-1" aria-hidden="true"></div>
+  <div class="floating-ring ring-2" aria-hidden="true"></div>
+  <div class="floating-ring ring-3" aria-hidden="true"></div>
+
+  <!-- 카드 뒤 글로우 오브 -->
+  <div class="card-glow" aria-hidden="true"></div>
+
+  <!-- 다크모드 토글 -->
+  <button class="theme-toggle" type="button" aria-label="테마 전환" id="themeToggle">
+    <!-- 해 아이콘 (다크모드에서 표시) -->
+    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+    <!-- 달 아이콘 (라이트모드에서 표시) -->
+    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+
+  <!-- 로그인 카드 -->
+  <main class="login-card" role="main">
+    <!-- 상단 악센트 바 -->
+    <div class="card-accent-bar" aria-hidden="true"></div>
+
+    <div class="card-body">
+      <!-- 로고 영역 -->
+      <div class="logo-area">
+        <div class="logo-icon">
+          <!-- 터미널 아이콘 -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"/>
+            <line x1="12" y1="19" x2="20" y2="19"/>
+          </svg>
+        </div>
+        <h2 class="logo-title">IGRUS</h2>
+        <p class="logo-subtitle">인하대학교 컴퓨터 동아리</p>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <form id="loginForm" novalidate>
+        <!-- 학번 -->
+        <div class="form-group">
+          <label class="form-label" for="studentId">학번</label>
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="studentId"
+              class="form-input"
+              placeholder="학번을 입력하세요"
+              autocomplete="username"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- 비밀번호 -->
+        <div class="form-group">
+          <label class="form-label" for="password">비밀번호</label>
+          <div class="input-wrapper password-wrapper">
+            <input
+              type="password"
+              id="password"
+              class="form-input"
+              placeholder="비밀번호를 입력하세요"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="password-toggle" aria-label="비밀번호 표시 전환" id="passwordToggle">
+              <!-- 눈 아이콘 (비밀번호 숨김 상태) -->
+              <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <!-- 눈 빗금 아이콘 (비밀번호 표시 상태) -->
+              <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 로그인 버튼 -->
+        <button type="submit" class="btn-login">로그인</button>
+      </form>
+
+      <!-- 구분선 -->
+      <div class="divider" role="separator">
+        <span class="divider-text">또는</span>
+      </div>
+
+      <!-- 회원가입 링크 -->
+      <div class="register-link">
+        <span>아직 회원이 아니신가요? </span>
+        <a href="#">회원가입</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- 최소 바닐라 JS -->
+  <script>
+    /* 다크모드 토글 */
+    (function () {
+      var toggle = document.getElementById('themeToggle');
+      var html = document.documentElement;
+
+      /* 시스템 설정 또는 저장된 설정 확인 */
+      var stored = localStorage.getItem('igrus-theme');
+      if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.classList.add('dark');
+      }
+
+      toggle.addEventListener('click', function () {
+        html.classList.toggle('dark');
+        localStorage.setItem('igrus-theme', html.classList.contains('dark') ? 'dark' : 'light');
+      });
+    })();
+
+    /* 비밀번호 표시/숨김 토글 */
+    (function () {
+      var btn = document.getElementById('passwordToggle');
+      var input = document.getElementById('password');
+      var iconEye = btn.querySelector('.icon-eye');
+      var iconEyeOff = btn.querySelector('.icon-eye-off');
+
+      btn.addEventListener('click', function () {
+        var isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        iconEye.style.display = isPassword ? 'none' : 'block';
+        iconEyeOff.style.display = isPassword ? 'block' : 'none';
+        btn.setAttribute('aria-label', isPassword ? '비밀번호 숨기기' : '비밀번호 표시 전환');
+      });
+    })();
+
+    /* 폼 제출 방지 (시안용) */
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>
