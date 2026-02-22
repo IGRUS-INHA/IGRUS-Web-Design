@@ -1,0 +1,706 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   IGRUS Design System
+   ============================================ */
+
+@theme inline {
+  /* Radius */
+  --radius-r1: 4px;
+  --radius-r2: 8px;
+  --radius-r3: 12px;
+  --radius-r4: 16px;
+  --radius-full: 100px;
+
+  /* Spacing */
+  --spacing-s1: 4px;
+  --spacing-s2: 8px;
+  --spacing-s3: 12px;
+  --spacing-s4: 16px;
+  --spacing-s5: 24px;
+  --spacing-s6: 32px;
+  --spacing-s7: 48px;
+  --spacing-s8: 56px;
+
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand Colors */
+  --color-brand-l1: var(--brand-l1);
+  --color-brand-l2: var(--brand-l2);
+  --color-brand-l3: var(--brand-l3);
+  --color-brand-l4: var(--brand-l4);
+  --color-brand-l5: var(--brand-l5);
+  --color-brand-l6: var(--brand-l6);
+  --color-brand-l7: var(--brand-l7);
+  --color-brand-l8: var(--brand-l8);
+
+  /* Gray Scale */
+  --color-gray-1: var(--gray-1);
+  --color-gray-2: var(--gray-2);
+  --color-gray-3: var(--gray-3);
+  --color-gray-4: var(--gray-4);
+  --color-gray-5: var(--gray-5);
+  --color-gray-6: var(--gray-6);
+  --color-gray-7: var(--gray-7);
+  --color-gray-8: var(--gray-8);
+
+  /* State Colors */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+}
+
+:root {
+  /* Brand Colors - Main (#03A69E) */
+  --brand-l1: #E6F6F5;
+  --brand-l2: #B3E5E2;
+  --brand-l3: #66CBC5;
+  --brand-l4: #03A69E;
+  --brand-l5: #03958E;
+  --brand-l6: #027A75;
+  --brand-l7: #015F5B;
+  --brand-l8: #013E3B;
+
+  /* Gray Scale */
+  --gray-1: #F8F9FA;  /* 전체 배경색, 아주 연한 구분선 */
+  --gray-2: #E9ECEF;  /* 비활성 버튼 배경, 입력창 배경 */
+  --gray-3: #DEE2E6;  /* 일반적인 구분선(Divider), 테두리 */
+  --gray-4: #ADB5BD;  /* 비활성 텍스트, 아이콘 (Placeholder) */
+  --gray-5: #6C757D;  /* 보조 설명 텍스트, 메타 정보 */
+  --gray-6: #495057;  /* 일반 본문 텍스트 (Body Text) */
+  --gray-7: #343A40;  /* 강조 텍스트, 서브 타이틀 */
+  --gray-8: #212529;  /* 메인 타이틀, 가장 어두운 텍스트 */
+
+  /* State Colors */
+  --success: #28A745;
+  --warning: #FFC107;
+  --destructive: #DC3545;
+  --info: #17A2B8;
+
+  /* Semantic Colors - Light Mode */
+  --background: #FFFFFF;
+  --foreground: #212529;           /* gray-8: 메인 텍스트 */
+  --card: #FFFFFF;
+  --card-foreground: #212529;      /* gray-8 */
+  --popover: #FFFFFF;
+  --popover-foreground: #212529;   /* gray-8 */
+  --primary: #03A69E;              /* brand-l4 */
+  --primary-foreground: #FFFFFF;
+  --secondary: #F8F9FA;            /* gray-1 */
+  --secondary-foreground: #495057; /* gray-6 */
+  --muted: #F8F9FA;                /* gray-1 */
+  --muted-foreground: #6C757D;     /* gray-5: 보조 텍스트 */
+  --accent: #E6F6F5;               /* brand-l1 */
+  --accent-foreground: #03958E;    /* brand-l5 */
+  --border: #DEE2E6;               /* gray-3: 테두리 */
+  --input: #E9ECEF;                /* gray-2: 입력창 배경 */
+  --ring: #03A69E;                 /* brand-l4 */
+
+  /* Radius */
+  --radius: 8px;
+}
+
+.dark {
+  /* Semantic Colors - Dark Mode */
+  --background: #212529;           /* gray-8: 가장 어두운 배경 */
+  --foreground: #F8F9FA;           /* gray-1: 밝은 텍스트 */
+  --card: #343A40;                 /* gray-7 */
+  --card-foreground: #F8F9FA;      /* gray-1 */
+  --popover: #343A40;              /* gray-7 */
+  --popover-foreground: #F8F9FA;   /* gray-1 */
+  --primary: #66CBC5;              /* brand-l3 */
+  --primary-foreground: #212529;   /* gray-8 */
+  --secondary: #343A40;            /* gray-7 */
+  --secondary-foreground: #E9ECEF; /* gray-2 */
+  --muted: #343A40;                /* gray-7 */
+  --muted-foreground: #ADB5BD;     /* gray-4: 보조 텍스트 */
+  --accent: #015F5B;               /* brand-l7 */
+  --accent-foreground: #E6F6F5;    /* brand-l1 */
+  --border: #495057;               /* gray-6: 테두리 */
+  --input: #343A40;                /* gray-7: 입력창 배경 */
+  --ring: #66CBC5;                 /* brand-l3 */
+}
+
+/* ============================================
+   Typography - Inter Font
+   ============================================ */
+
+@layer base {
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2') format('woff2');
+  }
+
+  /* 브라우저 기본 비밀번호 표시 버튼 숨김 (커스텀 토글 사용) */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Heading 기본 요소 스타일 */
+  h1 {
+    font-weight: 700;
+    font-size: 42px;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.3;
+  }
+}
+
+/* ============================================
+   Typography Utility Classes
+   @utility로 등록하여 Tailwind 유틸리티 우선순위 보장
+   ============================================ */
+
+@utility typo-h1 {
+  font-weight: 700;
+  font-size: 42px;
+  line-height: 1.2;
+}
+
+@utility typo-h2 {
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.3;
+}
+
+@utility typo-h3 {
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+@utility typo-b1 {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+@utility typo-b2 {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@utility typo-label {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+@utility typo-c1 {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+@utility typo-c2 {
+  font-weight: 400;
+  font-size: 10px;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(3, 166, 158, 0.5);
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(3, 166, 158, 0.7);
+}
+
+/* Dark mode */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(102, 203, 197, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 203, 197, 0.7);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(3, 166, 158, 0.5) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(102, 203, 197, 0.5) transparent;
+}
+
+/* ============================================
+   SweetAlert2 Custom Styling
+   ============================================ */
+
+/* SweetAlert2 팝업 스타일 - 라이트 모드 */
+.swal2-popup {
+  background-color: #FFFFFF !important;
+  color: #212529 !important; /* gray-8 */
+  border: 2px solid #DEE2E6 !important; /* gray-3 */
+  border-radius: 16px !important; /* r4 */
+  width: 16em !important;
+  padding: 1rem !important;
+}
+
+/* Tailwind preflight가 border-width: 0으로 리셋하므로 아이콘 원형 테두리 복원 */
+.swal2-icon {
+  transform: scale(0.5) !important;
+  margin: -0.5em auto !important;
+  border-width: 0.25em !important;
+  border-style: solid !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+  border-width: 0.25em !important;
+  border-style: solid !important;
+}
+
+.swal2-title {
+  color: #212529 !important; /* gray-8 */
+  font-size: 1rem !important;
+  padding: 0.5em 0 0 !important;
+}
+
+.swal2-html-container {
+  color: #495057 !important; /* gray-6 */
+  font-size: 0.8rem !important;
+  padding: 0.5em 0 !important;
+}
+
+.swal2-actions {
+  margin: 0.5em auto 0 !important;
+}
+
+.swal2-actions button {
+  font-size: 0.8rem !important;
+  padding: 0.4em 1.2em !important;
+}
+
+/* 다크 모드 */
+.dark .swal2-popup {
+  background-color: #343A40 !important; /* card */
+  color: #F8F9FA !important; /* foreground */
+  border-color: #495057 !important; /* gray-6 */
+}
+
+.dark .swal2-title {
+  color: #F8F9FA !important; /* foreground */
+}
+
+.dark .swal2-html-container {
+  color: #E9ECEF !important; /* gray-2 */
+}
+
+/* ============================================
+   Markdown Preview Styling (for read-only pages)
+   ============================================ */
+
+/* 프리뷰 폰트 */
+.wmde-markdown,
+.wmde-markdown p,
+.wmde-markdown span {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-size: 18px !important;
+  line-height: 1.6 !important;
+}
+
+/* 마크다운 프리뷰 영역의 리스트 스타일 */
+.wmde-markdown ul {
+  list-style-type: disc;
+  padding-left: 2rem;
+  margin: 1rem 0;
+}
+
+.wmde-markdown ol {
+  list-style-type: decimal;
+  padding-left: 2rem;
+  margin: 1rem 0;
+}
+
+.wmde-markdown li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* 중첩 리스트 */
+.wmde-markdown ul ul,
+.wmde-markdown ol ol,
+.wmde-markdown ul ol,
+.wmde-markdown ol ul {
+  margin: 0.25rem 0;
+}
+
+.wmde-markdown ul ul {
+  list-style-type: circle;
+}
+
+.wmde-markdown ul ul ul {
+  list-style-type: square;
+}
+
+/* 리스트 다음에 다른 요소가 올 때 여백 */
+.wmde-markdown ul + *:not(ul):not(ol),
+.wmde-markdown ol + *:not(ul):not(ol) {
+  margin-top: 1rem;
+}
+
+/* 마크다운 프리뷰 영역의 기타 요소 */
+.wmde-markdown h1,
+.wmde-markdown h2,
+.wmde-markdown h3,
+.wmde-markdown h4,
+.wmde-markdown h5,
+.wmde-markdown h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.wmde-markdown p {
+  margin: 1rem 0;
+}
+
+.wmde-markdown code {
+  background: rgba(3, 166, 158, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.wmde-markdown pre {
+  background: rgba(3, 166, 158, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.wmde-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.wmde-markdown blockquote {
+  border-left: 4px solid #03A69E;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--gray-6);
+}
+
+.wmde-markdown a {
+  color: #03A69E;
+  text-decoration: underline;
+}
+
+.wmde-markdown a:hover {
+  color: #027A75;
+}
+
+/* 다크모드 */
+.dark .wmde-markdown code {
+  background: rgba(102, 203, 197, 0.1);
+}
+
+.dark .wmde-markdown pre {
+  background: rgba(102, 203, 197, 0.05);
+}
+
+.dark .wmde-markdown blockquote {
+  border-left-color: #66CBC5;
+  color: var(--gray-4);
+}
+
+.dark .wmde-markdown a {
+  color: #66CBC5;
+}
+
+.dark .wmde-markdown a:hover {
+  color: #B3E5E2;
+}
+
+/* ============================================
+   Novel WYSIWYG Editor Styling
+   ============================================ */
+
+.novel-editor .ProseMirror {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  outline: none;
+}
+
+.novel-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}
+
+@media (max-width: 767px) {
+  .novel-editor .ProseMirror {
+    font-size: 16px !important;
+    min-height: 300px !important;
+  }
+}
+
+/* ============================================
+   Hero Section - Clean
+   ============================================ */
+
+/* Hero Heading - 반응형 대형 타이포그래피 */
+.hero-heading {
+  font-weight: 800;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+/* 배경 - 다크 모드 */
+.hero-clean-dark {
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 25%, rgba(3, 166, 158, 0.1) 0%, transparent 60%),
+    #1a1e24;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 배경 - 라이트 모드 */
+.hero-clean-light {
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 25%, rgba(3, 166, 158, 0.06) 0%, transparent 60%),
+    #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* 하단 액센트 라인 */
+.hero-accent-line::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(3, 166, 158, 0.3), transparent);
+}
+
+.dark .hero-accent-line::after {
+  background: linear-gradient(90deg, transparent, rgba(3, 166, 158, 0.4), transparent);
+}
+
+/* 텍스트 글로우 효과 */
+.hero-text-glow {
+  text-shadow: 0 0 80px rgba(3, 166, 158, 0.12);
+}
+
+.dark .hero-text-glow {
+  text-shadow: 0 0 80px rgba(3, 166, 158, 0.2);
+}
+
+/* 그라데이션 텍스트 shimmer 효과 */
+@keyframes hero-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-gradient-text {
+  background-size: 200% 200%;
+  animation: hero-gradient-shift 8s ease-in-out infinite;
+  -webkit-text-stroke: 1px #03A69E;
+}
+
+/* 뱃지 */
+.hero-badge-glow {
+  box-shadow: none;
+}
+
+.dark .hero-badge-glow {
+  box-shadow: 0 0 8px rgba(3, 166, 158, 0.08);
+}
+
+/* Primary 버튼 글로우 */
+.hero-btn-glow {
+  box-shadow: 0 1px 4px rgba(3, 166, 158, 0.12);
+  transition: box-shadow 0.3s ease;
+}
+
+.hero-btn-glow:hover {
+  box-shadow: 0 2px 12px rgba(3, 166, 158, 0.22);
+}
+
+.dark .hero-btn-glow {
+  box-shadow: 0 1px 8px rgba(3, 166, 158, 0.18);
+}
+
+.dark .hero-btn-glow:hover {
+  box-shadow: 0 2px 16px rgba(3, 166, 158, 0.32);
+}
+
+/* 도트 그리드 패턴 오버레이 */
+.hero-dot-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(3, 166, 158, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 60% 50% at 80% 30%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 80% 30%, black 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.dark .hero-dot-grid {
+  background-image: radial-gradient(circle, rgba(102, 203, 197, 0.15) 1px, transparent 1px);
+}
+
+/* 장식용 플로팅 링 */
+@keyframes hero-ring-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(6deg); }
+}
+
+@keyframes hero-ring-float-delay {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-4deg); }
+}
+
+.hero-deco-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(3, 166, 158, 0.15);
+  pointer-events: none;
+  animation: hero-ring-float 6s ease-in-out infinite;
+}
+
+.hero-deco-ring-2 {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(3, 166, 158, 0.15);
+  pointer-events: none;
+  animation: hero-ring-float-delay 8s ease-in-out infinite;
+  transform: rotate(45deg);
+}
+
+.dark .hero-deco-ring {
+  border-color: rgba(102, 203, 197, 0.15);
+}
+
+.dark .hero-deco-ring-2 {
+  border-color: rgba(102, 203, 197, 0.15);
+}
+
+/* 장식용 글로우 오브 */
+.hero-glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(3, 166, 158, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.dark .hero-glow-orb {
+  background: radial-gradient(circle, rgba(3, 166, 158, 0.2) 0%, transparent 70%);
+}
+
+/* 장식용 로고 (모바일에서도 표시) */
+.hero-logo-deco {
+  position: absolute;
+  pointer-events: none;
+  animation: hero-ring-float 6s ease-in-out infinite;
+}
+
+/* 접근성: 모션 감소 설정 시 애니메이션 비활성화 */
+@media (prefers-reduced-motion: reduce) {
+  .hero-gradient-text {
+    animation: none;
+  }
+  .hero-deco-ring,
+  .hero-deco-ring-2 {
+    animation: none;
+  }
+}
+
+/* 모바일 히어로 헤딩 크기 조정 */
+@media (max-width: 767px) {
+  .hero-heading {
+    font-size: clamp(28px, 7vw, 36px);
+  }
+  .hero-deco-ring,
+  .hero-deco-ring-2,
+  .hero-glow-orb {
+    display: none;
+  }
+}
+
+/* ============================================
+   Login Page
+   ============================================ */
+
+/* 브랜드 패널 그라디언트 */
+.login-brand-panel {
+  background: linear-gradient(135deg, #013E3B 0%, #027A75 40%, #03A69E 100%);
+}
+
+/* 브랜드 패널 도트 그리드 */
+.login-dot-grid {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 70% 60% at 70% 30%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 70% 30%, black 0%, transparent 70%);
+}
