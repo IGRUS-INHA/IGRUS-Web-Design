@@ -1,0 +1,100 @@
+/* ===== IGRUS Design System Tokens ===== */
+/* 모든 시안 HTML에서 <link>로 참조하는 공통 토큰 파일 */
+
+/* ===== 리셋 ===== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== 디자인 토큰 ===== */
+:root {
+  /* Brand Colors */
+  --brand-l1: #E6F6F5;
+  --brand-l2: #B3E5E2;
+  --brand-l3: #66CBC5;
+  --brand-l4: #03A69E;
+  --brand-l5: #03958E;
+  --brand-l6: #027A75;
+  --brand-l7: #015F5B;
+  --brand-l8: #013E3B;
+
+  /* Gray Scale */
+  --gray-1: #F8F9FA;
+  --gray-2: #E9ECEF;
+  --gray-3: #DEE2E6;
+  --gray-4: #ADB5BD;
+  --gray-5: #6C757D;
+  --gray-6: #495057;
+  --gray-7: #343A40;
+  --gray-8: #212529;
+
+  /* Semantic Tokens (Light Mode) */
+  --background: #FFFFFF;
+  --foreground: #212529;
+  --card: #FFFFFF;
+  --card-foreground: #212529;
+  --primary: #03A69E;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F8F9FA;
+  --secondary-foreground: #495057;
+  --muted: #F8F9FA;
+  --muted-foreground: #6C757D;
+  --accent: #E6F6F5;
+  --accent-foreground: #03958E;
+  --border: #DEE2E6;
+  --input: #E9ECEF;
+  --ring: #03A69E;
+  --destructive: #DC3545;
+  --popover: #FFFFFF;
+  --popover-foreground: #212529;
+
+  /* Spacing (8px 기반) */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 56px;
+
+  /* Border Radius */
+  --r1: 4px;
+  --r2: 8px;
+  --r3: 12px;
+  --r4: 16px;
+  --r-full: 100px;
+}
+
+/* ===== 다크모드 토큰 ===== */
+.dark {
+  --background: #212529;
+  --foreground: #F8F9FA;
+  --card: #343A40;
+  --card-foreground: #F8F9FA;
+  --primary: #66CBC5;
+  --primary-foreground: #212529;
+  --secondary: #343A40;
+  --secondary-foreground: #E9ECEF;
+  --muted: #343A40;
+  --muted-foreground: #ADB5BD;
+  --accent: #015F5B;
+  --accent-foreground: #E6F6F5;
+  --border: #495057;
+  --input: #343A40;
+  --ring: #66CBC5;
+  --popover: #343A40;
+  --popover-foreground: #F8F9FA;
+}
+
+/* ===== 기본 스타일 ===== */
+html {
+  font-family: 'Inter', sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
