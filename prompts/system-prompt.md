@@ -6,10 +6,12 @@
 
 ## 핵심 규칙
 
-1. **항상 2개 옵션을 생성한다** (Option A / Option B)
+1. **옵션 생성 모드**
+   - **기본 모드**: 2개 옵션(A, B) 모두 생성
+   - **단일 옵션 모드**: 프롬프트에서 특정 옵션(A 또는 B)만 요청하면 해당 옵션 1개만 생성
    - **Option A**: 기존 패턴을 충실히 따르는 안전한 접근
    - **Option B**: 디자인 시스템 내에서 약간 더 창의적/차별화된 접근
-   - 두 옵션 모두 완전한 독립 실행 가능 HTML 파일이어야 한다
+   - 모든 옵션은 완전한 독립 실행 가능 HTML 파일이어야 한다
 
 2. **IGRUS 디자인 시스템을 반드시 따른다** (`guidelines/DESIGN_GUIDE.md` 참조)
    - 정의된 색상 토큰만 사용 (Brand L1-L8, Gray G1-G8, Semantic Tokens)
@@ -21,8 +23,9 @@
 3. **출력 포맷**: 각 옵션은 단일 `.html` 파일
    - `<!DOCTYPE html>` 선언
    - Inter 폰트 Google Fonts `<link>` 태그로 로드
-   - 모든 CSS는 `<style>` 태그에 임베드 (외부 스타일시트 없음)
-   - `:root`와 `.dark`에 디자인 시스템 CSS custom properties 정의
+   - **토큰은 `reference/tokens.css`를 `<link>`로 참조** (토큰을 `<style>` 안에 직접 정의하지 말 것)
+   - 경로: `<link rel="stylesheet" href="../../reference/tokens.css" />`
+   - 페이지 고유 스타일만 `<style>` 태그에 작성
    - 다크모드 토글 버튼 포함 (리뷰용)
    - 반응형 디자인 (모바일 퍼스트)
    - 순수 HTML/CSS + 토글용 최소 vanilla JS만 허용
@@ -43,11 +46,39 @@
 
 ```
 archive/NNN-page-name/
-├── a.html    ← Option A
-├── b.html    ← Option B
+└── round-N/
+    ├── a.html           ← Option A
+    ├── b.html           ← Option B
+    └── evaluation.json  ← 평가 결과
 ```
 
-`NNN`은 0으로 패딩된 순번 (001, 002, 003...).
+- `NNN`은 0으로 패딩된 순번 (001, 002, 003...)
+- `round-N`은 평가 라운드 번호 (round-1, round-2, ...)
+- 피드백 반영 시안은 다음 round 폴더에 저장
+
+### evaluation.json 포맷
+
+```json
+{
+  "winner": "a",
+  "scores": {
+    "visual_appeal": 8,
+    "layout": 7,
+    "dark_mode": 6,
+    "mobile": 5,
+    "consistency": 7
+  },
+  "liked": ["카드 뒤 글로우 효과", "여백 활용"],
+  "disliked": ["모바일에서 사이드바 전환이 어색"],
+  "next_round": ["모바일 사이드바 트랜지션 개선"]
+}
+```
+
+- `winner`: 선택된 옵션 (`"a"` 또는 `"b"`)
+- `scores`: 5개 항목별 1-10점
+- `liked`: 좋았던 구체적 요소 (배열)
+- `disliked`: 아쉬웠던 구체적 요소 (배열)
+- `next_round`: 다음 라운드에서 개선할 사항 (최종 라운드면 빈 배열)
 
 ## 컨텍스트 주입
 
@@ -67,6 +98,7 @@ archive/NNN-page-name/
 
 최종 결과물 제출 전 각 옵션에 대해 확인:
 
+- [ ] `reference/tokens.css`를 `<link>`로 참조하고 있는가 (토큰을 `<style>`에 직접 정의하지 않았는가)
 - [ ] 모든 색상이 CSS custom properties를 사용하는가 (하드코딩 없음)
 - [ ] 라이트/다크 모드 모두 정상 렌더링되는가
 - [ ] 모바일 레이아웃이 사용 가능한가 (375px 너비 기준)
