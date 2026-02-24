@@ -1,0 +1,13 @@
+{
+  "winner": "a",
+  "scores": {
+    "visual_appeal": 7,
+    "layout": 8,
+    "dark_mode": 7,
+    "mobile": 7,
+    "consistency": 8
+  },
+  "liked": ["깔끔한 사이드바 구조", "테이블 가독성", "카드 상단 그라데이션 바", "5개 서브페이지 전환 구현"],
+  "disliked": ["대시보드에 그래프/차트 부재"],
+  "next_round": ["대시보드에 데이터 시각화 그래프 추가 (회원 증가 추이, 문의 현황 등)"]
+}

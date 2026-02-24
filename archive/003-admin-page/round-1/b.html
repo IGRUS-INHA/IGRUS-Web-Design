@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <style>
+    /* ===== 페이지 고유 스타일 ===== */
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== 스크롤바 ===== */
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: var(--background); }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(3, 166, 158, 0.5);
+      border-radius: var(--r-full);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(3, 166, 158, 0.7); }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(102, 203, 197, 0.5); }
+    .dark ::-webkit-scrollbar-thumb:hover { background: rgba(102, 203, 197, 0.7); }
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(3, 166, 158, 0.5) var(--background);
+    }
+
+    /* ===== 레이아웃 ===== */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ===== 관리자 사이드바 ===== */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+      background:
+        linear-gradient(180deg, var(--brand-l8) 0%, var(--brand-l7) 40%, var(--brand-l6) 100%);
+    }
+    .dark .sidebar {
+      background:
+        linear-gradient(180deg, var(--gray-8) 0%, var(--brand-l8) 60%, var(--brand-l7) 100%);
+    }
+
+    /* 사이드바 도트 오버레이 */
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+
+    .sidebar-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: var(--s5) var(--s4);
+    }
+
+    .sidebar-logo-area {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      margin-bottom: var(--s7);
+      padding: 0 var(--s2);
+    }
+
+    .sidebar-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.15);
+      border-radius: var(--r2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-logo-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.95);
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+    }
+
+    .sidebar-logo-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s1);
+      flex: 1;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      padding: var(--s4) var(--s3) var(--s2);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      padding: var(--s3) var(--s4);
+      border-radius: var(--r2);
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.65);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.95);
+    }
+
+    .nav-item.active {
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,1);
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: var(--s2);
+      bottom: var(--s2);
+      width: 4px;
+      background: rgba(255,255,255,0.9);
+      border-radius: var(--r1);
+    }
+
+    .nav-icon {
+      width: 20px; height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.9);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px var(--s2);
+      border-radius: var(--r-full);
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .nav-badge.alert {
+      background: var(--destructive);
+      color: rgba(255,255,255,0.95);
+    }
+
+    .sidebar-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s1);
+      padding-top: var(--s5);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: var(--s4);
+    }
+
+    .sidebar-bottom .nav-item {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .sidebar-bottom .nav-item:hover {
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* ===== 메인 영역 ===== */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--background);
+    }
+
+    /* ===== 헤더 ===== */
+    .header {
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--s6);
+      background: var(--card);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--s4);
+    }
+
+    .hamburger {
+      display: none;
+      width: 40px; height: 40px;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      cursor: pointer;
+      color: var(--foreground);
+      padding: 0;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--foreground);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--s4);
+    }
+
+    /* 다크모드 토글 (헤더 내) */
+    .theme-toggle {
+      width: 36px; height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      cursor: pointer;
+      color: var(--foreground);
+      transition: all 0.2s;
+      padding: 0;
+    }
+    .theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+    .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-sun { display: none; }
+    .dark .theme-toggle .icon-moon { display: none; }
+    .dark .theme-toggle .icon-sun { display: block; }
+
+    /* 관리자 프로필 */
+    .admin-profile {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      padding: var(--s1) var(--s3) var(--s1) var(--s1);
+      border-radius: var(--r-full);
+      border: 1px solid var(--border);
+      background: var(--card);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .admin-profile:hover { border-color: var(--primary); }
+
+    .admin-avatar {
+      width: 32px; height: 32px;
+      border-radius: var(--r-full);
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.95);
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .admin-info { display: flex; flex-direction: column; }
+
+    .admin-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--foreground);
+      line-height: 1.2;
+    }
+
+    .admin-role-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+
+    /* ===== 콘텐츠 영역 ===== */
+    .content {
+      flex: 1;
+      padding: var(--s6);
+      overflow-y: auto;
+    }
+
+    .content-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* ===== 페이지 섹션 (서브페이지 전환) ===== */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* ===== 대시보드 ===== */
+
+    /* 통계 카드 그리드 */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--s5);
+      margin-bottom: var(--s6);
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r4);
+      padding: var(--s5);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(3, 166, 158, 0.08);
+    }
+    .dark .stat-card:hover {
+      box-shadow: 0 8px 24px rgba(102, 203, 197, 0.06);
+    }
+
+    /* 카드 상단 그라데이션 바 */
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand-l4), var(--brand-l3));
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .stat-card:hover::before { opacity: 1; }
+
+    /* 카드 배경 글로우 */
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(3, 166, 158, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .dark .stat-card::after {
+      background: radial-gradient(circle, rgba(102, 203, 197, 0.04) 0%, transparent 70%);
+    }
+
+    .stat-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--s4);
+    }
+
+    .stat-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--r3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      color: var(--primary);
+    }
+
+    .stat-trend {
+      display: flex;
+      align-items: center;
+      gap: var(--s1);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px var(--s2);
+      border-radius: var(--r-full);
+    }
+
+    .stat-trend.up {
+      background: rgba(40, 167, 69, 0.1);
+      color: #28A745;
+    }
+    .dark .stat-trend.up {
+      background: rgba(40, 167, 69, 0.15);
+    }
+
+    .stat-trend.down {
+      background: rgba(220, 53, 69, 0.1);
+      color: var(--destructive);
+    }
+    .dark .stat-trend.down {
+      background: rgba(220, 53, 69, 0.15);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--foreground);
+      line-height: 1.2;
+      margin-bottom: var(--s1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 미니 스파크라인 장식 */
+    .stat-sparkline {
+      position: absolute;
+      bottom: var(--s4);
+      right: var(--s5);
+      opacity: 0.15;
+      z-index: 0;
+    }
+    .dark .stat-sparkline { opacity: 0.1; }
+
+    /* 대시보드 2단 그리드 */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s5);
+    }
+
+    /* 패널 카드 */
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r4);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--s4) var(--s5);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    .panel-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .panel-link:hover { opacity: 0.7; }
+
+    .panel-body { padding: var(--s4) var(--s5); }
+
+    /* 최근 가입 리스트 */
+    .member-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .member-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      padding: var(--s3) 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .member-item:last-child { border-bottom: none; }
+
+    .member-avatar {
+      width: 36px; height: 36px;
+      border-radius: var(--r-full);
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .member-info { flex: 1; min-width: 0; }
+
+    .member-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    .member-email {
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    .member-date {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      flex-shrink: 0;
+    }
+
+    /* 최근 문의 리스트 */
+    .inquiry-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      padding: var(--s3) 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .inquiry-item:last-child { border-bottom: none; }
+
+    .inquiry-status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .inquiry-status-dot.waiting { background: #FFC107; }
+    .inquiry-status-dot.done { background: #28A745; }
+
+    .inquiry-info { flex: 1; min-width: 0; }
+
+    .inquiry-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .inquiry-meta {
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    .inquiry-date {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      flex-shrink: 0;
+    }
+
+    /* ===== 공통: 상단 필터/검색 영역 ===== */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      margin-bottom: var(--s5);
+      flex-wrap: wrap;
+    }
+
+    .toolbar-search {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s4);
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      flex: 1;
+      max-width: 320px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .toolbar-search:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3, 166, 158, 0.1);
+    }
+    .dark .toolbar-search:focus-within {
+      box-shadow: 0 0 0 3px rgba(102, 203, 197, 0.1);
+    }
+
+    .toolbar-search input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--foreground);
+      width: 100%;
+    }
+    .toolbar-search input::placeholder { color: var(--muted-foreground); }
+    .toolbar-search-icon { color: var(--muted-foreground); flex-shrink: 0; }
+
+    .toolbar-select {
+      padding: var(--s2) var(--s4);
+      padding-right: var(--s6);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--foreground);
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236C757D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      transition: border-color 0.2s;
+    }
+    .toolbar-select:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(3, 166, 158, 0.1);
+    }
+    .dark .toolbar-select:focus {
+      box-shadow: 0 0 0 3px rgba(102, 203, 197, 0.1);
+    }
+    .dark .toolbar-select {
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ADB5BD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    }
+
+    /* ===== 공통: 탭 필터 ===== */
+    .filter-tabs {
+      display: flex;
+      gap: var(--s1);
+      margin-bottom: var(--s5);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .filter-tab {
+      padding: var(--s3) var(--s4);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: none;
+      font-family: 'Inter', sans-serif;
+      position: relative;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .filter-tab:hover { color: var(--foreground); }
+
+    .filter-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .filter-tab .tab-count {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--muted);
+      color: var(--muted-foreground);
+      padding: 1px var(--s2);
+      border-radius: var(--r-full);
+      margin-left: var(--s1);
+    }
+
+    .filter-tab.active .tab-count {
+      background: var(--accent);
+      color: var(--primary);
+    }
+
+    /* ===== 공통: 테이블 ===== */
+    .data-table {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r4);
+      overflow: hidden;
+    }
+
+    .data-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table thead th {
+      padding: var(--s3) var(--s4);
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      background: var(--muted);
+    }
+
+    .data-table tbody td {
+      padding: var(--s3) var(--s4);
+      font-size: 14px;
+      color: var(--foreground);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr { transition: background 0.15s; }
+
+    .data-table tbody tr:hover { background: var(--accent); }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+
+    /* 확장 가능한 행 */
+    .data-table tbody tr.expandable { cursor: pointer; }
+
+    .data-table tbody tr.detail-row { display: none; }
+    .data-table tbody tr.detail-row.open { display: table-row; }
+
+    .data-table tbody tr.detail-row td {
+      background: var(--muted);
+      padding: var(--s5);
+    }
+
+    .detail-content {
+      font-size: 14px;
+      color: var(--foreground);
+      line-height: 1.7;
+    }
+
+    .detail-content p { margin-bottom: var(--s3); }
+
+    .detail-reply-area {
+      margin-top: var(--s4);
+      padding-top: var(--s4);
+      border-top: 1px solid var(--border);
+    }
+
+    .detail-reply-area textarea {
+      width: 100%;
+      padding: var(--s3);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--foreground);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .detail-reply-area textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3, 166, 158, 0.1);
+    }
+    .dark .detail-reply-area textarea:focus {
+      box-shadow: 0 0 0 3px rgba(102, 203, 197, 0.1);
+    }
+
+    .detail-reply-area .reply-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--s2);
+      margin-top: var(--s3);
+    }
+
+    /* ===== 뱃지 ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--s2);
+      border-radius: var(--r-full);
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-primary {
+      background: var(--accent);
+      color: var(--primary);
+    }
+
+    .badge-secondary {
+      background: var(--muted);
+      color: var(--muted-foreground);
+    }
+
+    .badge-success {
+      background: rgba(40, 167, 69, 0.1);
+      color: #28A745;
+    }
+    .dark .badge-success {
+      background: rgba(40, 167, 69, 0.15);
+      color: #5bc876;
+    }
+
+    .badge-warning {
+      background: rgba(255, 193, 7, 0.15);
+      color: #b38600;
+    }
+    .dark .badge-warning {
+      background: rgba(255, 193, 7, 0.15);
+      color: #FFC107;
+    }
+
+    .badge-danger {
+      background: rgba(220, 53, 69, 0.1);
+      color: var(--destructive);
+    }
+    .dark .badge-danger {
+      background: rgba(220, 53, 69, 0.15);
+    }
+
+    .badge-info {
+      background: rgba(23, 162, 184, 0.1);
+      color: #17A2B8;
+    }
+    .dark .badge-info {
+      background: rgba(23, 162, 184, 0.15);
+      color: #45c4d6;
+    }
+
+    .badge-admin {
+      background: linear-gradient(135deg, var(--accent), rgba(3, 166, 158, 0.15));
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* ===== 버튼 ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s4);
+      border-radius: var(--r2);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      white-space: nowrap;
+    }
+    .btn:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(3, 166, 158, 0.15);
+    }
+    .dark .btn:focus {
+      box-shadow: 0 0 0 3px rgba(102, 203, 197, 0.15);
+    }
+
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+    .btn-primary:hover { filter: brightness(0.92); }
+
+    .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+    .btn-secondary:hover { background: var(--muted); }
+
+    .btn-outline { background: transparent; color: var(--foreground); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+
+    .btn-ghost { background: transparent; color: var(--foreground); }
+    .btn-ghost:hover { background: var(--muted); }
+
+    .btn-destructive { background: var(--destructive); color: rgba(255,255,255,0.95); }
+    .btn-destructive:hover { filter: brightness(0.9); }
+
+    .btn-sm { padding: var(--s1) var(--s2); font-size: 12px; }
+
+    .btn-icon {
+      width: 32px; height: 32px;
+      padding: 0;
+      border-radius: var(--r2);
+    }
+
+    /* ===== 페이지네이션 ===== */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s1);
+      margin-top: var(--s5);
+    }
+
+    .pagination-btn {
+      min-width: 36px; height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r2);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      background: var(--card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 0 var(--s2);
+    }
+
+    .pagination-btn:hover {
+      background: var(--accent);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .pagination-btn.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ===== 유저 셀 (아바타 + 이름) ===== */
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+
+    .user-cell-avatar {
+      width: 32px; height: 32px;
+      border-radius: var(--r-full);
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .user-cell-info { min-width: 0; }
+    .user-cell-name { font-weight: 600; font-size: 14px; color: var(--foreground); }
+    .user-cell-sub { font-size: 12px; color: var(--muted-foreground); }
+
+    /* ===== 액션 버튼 그룹 ===== */
+    .action-group {
+      display: flex;
+      gap: var(--s1);
+    }
+
+    /* ===== 상태 dot ===== */
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.active { background: #28A745; }
+    .status-dot.inactive { background: var(--muted-foreground); }
+
+    /* ===== 확장 행 화살표 ===== */
+    .expand-icon {
+      transition: transform 0.2s;
+      color: var(--muted-foreground);
+    }
+    .expand-icon.open { transform: rotate(90deg); }
+
+    /* ===== 모바일 백드롭 ===== */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 45;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 1023px) {
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0;
+        transform: translateX(-100%);
+        z-index: 50;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-backdrop.open { display: block; }
+      .hamburger { display: flex; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 767px) {
+      .header { padding: 0 var(--s4); }
+      .content { padding: var(--s4); }
+      .stat-grid { grid-template-columns: 1fr 1fr; gap: var(--s3); }
+      .stat-card { padding: var(--s4); }
+      .stat-value { font-size: 22px; }
+      .admin-info { display: none; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-search { max-width: 100%; }
+      .data-table { font-size: 13px; }
+      .data-table thead th,
+      .data-table tbody td { padding: var(--s2) var(--s3); }
+      /* 테이블 가로 스크롤 */
+      .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .filter-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    }
+
+    @media (max-width: 479px) {
+      .stat-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stat-card,
+      .nav-item,
+      .data-table tbody tr,
+      .btn { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 모바일 백드롭 -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+    <!-- ===== 관리자 사이드바 ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <!-- 로고 -->
+        <div class="sidebar-logo-area">
+          <div class="sidebar-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div class="sidebar-logo-text">
+            <span class="sidebar-logo-title">IGRUS</span>
+            <span class="sidebar-logo-sub">ADMIN PANEL</span>
+          </div>
+        </div>
+
+        <!-- 네비게이션 -->
+        <nav class="sidebar-nav">
+          <div class="sidebar-section-label">관리 메뉴</div>
+
+          <button class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard', this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+              </svg>
+            </span>
+            대시보드
+          </button>
+
+          <button class="nav-item" data-page="members" onclick="switchPage('members', this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            회원 관리
+            <span class="nav-badge">156</span>
+          </button>
+
+          <button class="nav-item" data-page="associates" onclick="switchPage('associates', this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+              </svg>
+            </span>
+            준회원 관리
+            <span class="nav-badge alert">12</span>
+          </button>
+
+          <button class="nav-item" data-page="inquiries" onclick="switchPage('inquiries', this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </span>
+            문의 관리
+            <span class="nav-badge alert">3</span>
+          </button>
+
+          <button class="nav-item" data-page="scraps" onclick="switchPage('scraps', this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+            </span>
+            스크랩 관리
+          </button>
+        </nav>
+
+        <!-- 하단 -->
+        <div class="sidebar-bottom">
+          <button class="nav-item">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </span>
+            메인으로
+          </button>
+          <button class="nav-item">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </span>
+            로그아웃
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== 메인 영역 ===== -->
+    <div class="main-area">
+      <!-- 상단 헤더 -->
+      <header class="header">
+        <div class="header-left">
+          <button class="hamburger" onclick="toggleSidebar()" aria-label="메뉴 열기">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <h1 class="page-title" id="pageTitle">대시보드</h1>
+        </div>
+        <div class="header-right">
+          <!-- 다크모드 토글 -->
+          <button class="theme-toggle" onclick="document.documentElement.classList.toggle('dark')" aria-label="테마 전환">
+            <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+          </button>
+
+          <!-- 관리자 프로필 -->
+          <div class="admin-profile">
+            <div class="admin-avatar">JW</div>
+            <div class="admin-info">
+              <span class="admin-name">정우성</span>
+              <span class="admin-role-badge">관리자</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ===== 콘텐츠 영역 ===== -->
+      <main class="content">
+        <div class="content-inner">
+
+          <!-- ============================== -->
+          <!-- 1. 대시보드 -->
+          <!-- ============================== -->
+          <section class="page-section active" id="page-dashboard">
+
+            <!-- 통계 카드 -->
+            <div class="stat-grid">
+              <!-- 총 회원 수 -->
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <span class="stat-trend up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                    +8%
+                  </span>
+                </div>
+                <div class="stat-value">156</div>
+                <div class="stat-label">총 회원 수</div>
+                <svg class="stat-sparkline" width="80" height="32" viewBox="0 0 80 32" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="0,28 10,24 20,26 30,18 40,20 50,14 60,16 70,8 80,4" stroke="var(--primary)" fill="none" />
+                </svg>
+              </div>
+
+              <!-- 준회원 수 -->
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                  </div>
+                  <span class="stat-trend up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                    +4
+                  </span>
+                </div>
+                <div class="stat-value">12</div>
+                <div class="stat-label">준회원 수</div>
+                <svg class="stat-sparkline" width="80" height="32" viewBox="0 0 80 32" fill="none">
+                  <polyline points="0,24 10,22 20,28 30,20 40,24 50,16 60,12 70,10 80,8" stroke="var(--primary)" stroke-width="2" fill="none" />
+                </svg>
+              </div>
+
+              <!-- 미답변 문의 -->
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </div>
+                  <span class="stat-trend down">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+                    -2
+                  </span>
+                </div>
+                <div class="stat-value">3</div>
+                <div class="stat-label">미답변 문의</div>
+                <svg class="stat-sparkline" width="80" height="32" viewBox="0 0 80 32" fill="none">
+                  <polyline points="0,8 10,12 20,6 30,16 40,14 50,20 60,24 70,22 80,26" stroke="var(--primary)" stroke-width="2" fill="none" />
+                </svg>
+              </div>
+
+              <!-- 이번 달 스크랩 -->
+              <div class="stat-card">
+                <div class="stat-card-header">
+                  <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </div>
+                  <span class="stat-trend up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                    +12%
+                  </span>
+                </div>
+                <div class="stat-value">28</div>
+                <div class="stat-label">이번 달 스크랩</div>
+                <svg class="stat-sparkline" width="80" height="32" viewBox="0 0 80 32" fill="none">
+                  <polyline points="0,26 10,22 20,24 30,16 40,18 50,10 60,14 70,6 80,4" stroke="var(--primary)" stroke-width="2" fill="none" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- 대시보드 하단 2단 -->
+            <div class="dashboard-grid">
+              <!-- 최근 가입 회원 -->
+              <div class="panel">
+                <div class="panel-header">
+                  <h3 class="panel-title">최근 가입 회원</h3>
+                  <span class="panel-link" onclick="switchPage('members', document.querySelector('[data-page=members]'))">전체 보기</span>
+                </div>
+                <div class="panel-body">
+                  <div class="member-list">
+                    <div class="member-item">
+                      <div class="member-avatar">김</div>
+                      <div class="member-info">
+                        <div class="member-name">김서연</div>
+                        <div class="member-email">seoyeon@inha.edu</div>
+                      </div>
+                      <span class="member-date">02.22</span>
+                    </div>
+                    <div class="member-item">
+                      <div class="member-avatar">이</div>
+                      <div class="member-info">
+                        <div class="member-name">이준호</div>
+                        <div class="member-email">junho@inha.edu</div>
+                      </div>
+                      <span class="member-date">02.21</span>
+                    </div>
+                    <div class="member-item">
+                      <div class="member-avatar">박</div>
+                      <div class="member-info">
+                        <div class="member-name">박지민</div>
+                        <div class="member-email">jimin@inha.edu</div>
+                      </div>
+                      <span class="member-date">02.20</span>
+                    </div>
+                    <div class="member-item">
+                      <div class="member-avatar">최</div>
+                      <div class="member-info">
+                        <div class="member-name">최유진</div>
+                        <div class="member-email">yujin@inha.edu</div>
+                      </div>
+                      <span class="member-date">02.19</span>
+                    </div>
+                    <div class="member-item">
+                      <div class="member-avatar">한</div>
+                      <div class="member-info">
+                        <div class="member-name">한승우</div>
+                        <div class="member-email">seungwoo@inha.edu</div>
+                      </div>
+                      <span class="member-date">02.18</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 최근 문의 -->
+              <div class="panel">
+                <div class="panel-header">
+                  <h3 class="panel-title">최근 문의</h3>
+                  <span class="panel-link" onclick="switchPage('inquiries', document.querySelector('[data-page=inquiries]'))">전체 보기</span>
+                </div>
+                <div class="panel-body">
+                  <div class="member-list">
+                    <div class="inquiry-item">
+                      <span class="inquiry-status-dot waiting"></span>
+                      <div class="inquiry-info">
+                        <div class="inquiry-title">동아리 가입 절차가 어떻게 되나요?</div>
+                        <div class="inquiry-meta">이민수</div>
+                      </div>
+                      <span class="inquiry-date">02.22</span>
+                    </div>
+                    <div class="inquiry-item">
+                      <span class="inquiry-status-dot waiting"></span>
+                      <div class="inquiry-info">
+                        <div class="inquiry-title">스터디 참여 방법 문의드립니다</div>
+                        <div class="inquiry-meta">장하늘</div>
+                      </div>
+                      <span class="inquiry-date">02.21</span>
+                    </div>
+                    <div class="inquiry-item">
+                      <span class="inquiry-status-dot waiting"></span>
+                      <div class="inquiry-info">
+                        <div class="inquiry-title">회비 납부 관련 질문</div>
+                        <div class="inquiry-meta">송다현</div>
+                      </div>
+                      <span class="inquiry-date">02.20</span>
+                    </div>
+                    <div class="inquiry-item">
+                      <span class="inquiry-status-dot done"></span>
+                      <div class="inquiry-info">
+                        <div class="inquiry-title">프로젝트 참여 가능한가요?</div>
+                        <div class="inquiry-meta">윤재현</div>
+                      </div>
+                      <span class="inquiry-date">02.18</span>
+                    </div>
+                    <div class="inquiry-item">
+                      <span class="inquiry-status-dot done"></span>
+                      <div class="inquiry-info">
+                        <div class="inquiry-title">동아리방 위치 문의</div>
+                        <div class="inquiry-meta">강수빈</div>
+                      </div>
+                      <span class="inquiry-date">02.16</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============================== -->
+          <!-- 2. 회원 관리 -->
+          <!-- ============================== -->
+          <section class="page-section" id="page-members">
+            <div class="toolbar">
+              <div class="toolbar-search">
+                <span class="toolbar-search-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </span>
+                <input type="text" placeholder="이름 또는 이메일로 검색..." />
+              </div>
+              <select class="toolbar-select">
+                <option>전체 역할</option>
+                <option>관리자</option>
+                <option>정회원</option>
+                <option>준회원</option>
+              </select>
+            </div>
+
+            <div class="table-wrapper">
+              <div class="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>회원</th>
+                      <th>이메일</th>
+                      <th>역할</th>
+                      <th>가입일</th>
+                      <th>상태</th>
+                      <th>액션</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">정</div>
+                          <div class="user-cell-info"><div class="user-cell-name">정우성</div></div>
+                        </div>
+                      </td>
+                      <td>wooseong@inha.edu</td>
+                      <td><span class="badge badge-admin">관리자</span></td>
+                      <td>2024.03.02</td>
+                      <td><span class="status-dot active"></span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-ghost btn-icon" title="편집">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button class="btn btn-ghost btn-icon" title="삭제" style="color: var(--destructive);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">김</div>
+                          <div class="user-cell-info"><div class="user-cell-name">김서연</div></div>
+                        </div>
+                      </td>
+                      <td>seoyeon@inha.edu</td>
+                      <td><span class="badge badge-primary">정회원</span></td>
+                      <td>2025.09.01</td>
+                      <td><span class="status-dot active"></span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-ghost btn-icon" title="편집">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button class="btn btn-ghost btn-icon" title="삭제" style="color: var(--destructive);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">이</div>
+                          <div class="user-cell-info"><div class="user-cell-name">이준호</div></div>
+                        </div>
+                      </td>
+                      <td>junho@inha.edu</td>
+                      <td><span class="badge badge-primary">정회원</span></td>
+                      <td>2025.09.01</td>
+                      <td><span class="status-dot active"></span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-ghost btn-icon" title="편집">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button class="btn btn-ghost btn-icon" title="삭제" style="color: var(--destructive);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">박</div>
+                          <div class="user-cell-info"><div class="user-cell-name">박지민</div></div>
+                        </div>
+                      </td>
+                      <td>jimin@inha.edu</td>
+                      <td><span class="badge badge-secondary">준회원</span></td>
+                      <td>2026.02.20</td>
+                      <td><span class="status-dot active"></span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-ghost btn-icon" title="편집">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button class="btn btn-ghost btn-icon" title="삭제" style="color: var(--destructive);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">최</div>
+                          <div class="user-cell-info"><div class="user-cell-name">최유진</div></div>
+                        </div>
+                      </td>
+                      <td>yujin@inha.edu</td>
+                      <td><span class="badge badge-primary">정회원</span></td>
+                      <td>2025.03.05</td>
+                      <td><span class="status-dot active"></span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-ghost btn-icon" title="편집">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button class="btn btn-ghost btn-icon" title="삭제" style="color: var(--destructive);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">한</div>
+                          <div class="user-cell-info"><div class="user-cell-name">한승우</div></div>
+                        </div>
+                      </td>
+                      <td>seungwoo@inha.edu</td>
+                      <td><span class="badge badge-primary">정회원</span></td>
+                      <td>2025.03.10</td>
+                      <td><span class="status-dot inactive"></span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-ghost btn-icon" title="편집">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button class="btn btn-ghost btn-icon" title="삭제" style="color: var(--destructive);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+              <button class="pagination-btn" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="pagination-btn active">1</button>
+              <button class="pagination-btn">2</button>
+              <button class="pagination-btn">3</button>
+              <button class="pagination-btn">...</button>
+              <button class="pagination-btn">16</button>
+              <button class="pagination-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <!-- ============================== -->
+          <!-- 3. 준회원 관리 -->
+          <!-- ============================== -->
+          <section class="page-section" id="page-associates">
+            <div class="filter-tabs">
+              <button class="filter-tab active">전체 <span class="tab-count">12</span></button>
+              <button class="filter-tab">대기 <span class="tab-count">5</span></button>
+              <button class="filter-tab">승인 <span class="tab-count">4</span></button>
+              <button class="filter-tab">거절 <span class="tab-count">3</span></button>
+            </div>
+
+            <div class="table-wrapper">
+              <div class="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>이름</th>
+                      <th>학번</th>
+                      <th>학과</th>
+                      <th>신청일</th>
+                      <th>상태</th>
+                      <th>액션</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">박</div>
+                          <div class="user-cell-info"><div class="user-cell-name">박지민</div></div>
+                        </div>
+                      </td>
+                      <td>12231045</td>
+                      <td>컴퓨터공학과</td>
+                      <td>2026.02.20</td>
+                      <td><span class="badge badge-warning">대기</span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-primary btn-sm">승인</button>
+                          <button class="btn btn-outline btn-sm" style="color: var(--destructive); border-color: var(--destructive);">거절</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">오</div>
+                          <div class="user-cell-info"><div class="user-cell-name">오하영</div></div>
+                        </div>
+                      </td>
+                      <td>12241012</td>
+                      <td>정보통신공학과</td>
+                      <td>2026.02.19</td>
+                      <td><span class="badge badge-warning">대기</span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-primary btn-sm">승인</button>
+                          <button class="btn btn-outline btn-sm" style="color: var(--destructive); border-color: var(--destructive);">거절</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">장</div>
+                          <div class="user-cell-info"><div class="user-cell-name">장현우</div></div>
+                        </div>
+                      </td>
+                      <td>12241088</td>
+                      <td>소프트웨어학과</td>
+                      <td>2026.02.18</td>
+                      <td><span class="badge badge-warning">대기</span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-primary btn-sm">승인</button>
+                          <button class="btn btn-outline btn-sm" style="color: var(--destructive); border-color: var(--destructive);">거절</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">윤</div>
+                          <div class="user-cell-info"><div class="user-cell-name">윤서아</div></div>
+                        </div>
+                      </td>
+                      <td>12231077</td>
+                      <td>전자공학과</td>
+                      <td>2026.02.17</td>
+                      <td><span class="badge badge-warning">대기</span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-primary btn-sm">승인</button>
+                          <button class="btn btn-outline btn-sm" style="color: var(--destructive); border-color: var(--destructive);">거절</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">임</div>
+                          <div class="user-cell-info"><div class="user-cell-name">임채원</div></div>
+                        </div>
+                      </td>
+                      <td>12241055</td>
+                      <td>컴퓨터공학과</td>
+                      <td>2026.02.16</td>
+                      <td><span class="badge badge-warning">대기</span></td>
+                      <td>
+                        <div class="action-group">
+                          <button class="btn btn-primary btn-sm">승인</button>
+                          <button class="btn btn-outline btn-sm" style="color: var(--destructive); border-color: var(--destructive);">거절</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">김</div>
+                          <div class="user-cell-info"><div class="user-cell-name">김태현</div></div>
+                        </div>
+                      </td>
+                      <td>12231030</td>
+                      <td>컴퓨터공학과</td>
+                      <td>2026.02.14</td>
+                      <td><span class="badge badge-success">승인</span></td>
+                      <td>
+                        <div class="action-group">
+                          <span style="font-size: 12px; color: var(--muted-foreground);">처리 완료</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">송</div>
+                          <div class="user-cell-info"><div class="user-cell-name">송민서</div></div>
+                        </div>
+                      </td>
+                      <td>12241099</td>
+                      <td>정보통신공학과</td>
+                      <td>2026.02.12</td>
+                      <td><span class="badge badge-success">승인</span></td>
+                      <td>
+                        <div class="action-group">
+                          <span style="font-size: 12px; color: var(--muted-foreground);">처리 완료</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="user-cell">
+                          <div class="user-cell-avatar">나</div>
+                          <div class="user-cell-info"><div class="user-cell-name">나영준</div></div>
+                        </div>
+                      </td>
+                      <td>12231062</td>
+                      <td>데이터사이언스학과</td>
+                      <td>2026.02.10</td>
+                      <td><span class="badge badge-danger">거절</span></td>
+                      <td>
+                        <div class="action-group">
+                          <span style="font-size: 12px; color: var(--muted-foreground);">처리 완료</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============================== -->
+          <!-- 4. 문의 관리 -->
+          <!-- ============================== -->
+          <section class="page-section" id="page-inquiries">
+            <div class="filter-tabs">
+              <button class="filter-tab active">전체 <span class="tab-count">8</span></button>
+              <button class="filter-tab">답변 대기 <span class="tab-count">3</span></button>
+              <button class="filter-tab">답변 완료 <span class="tab-count">5</span></button>
+            </div>
+
+            <div class="table-wrapper">
+              <div class="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width: 32px;"></th>
+                      <th>제목</th>
+                      <th>작성자</th>
+                      <th>날짜</th>
+                      <th>상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="expandable" onclick="toggleDetail(this)">
+                      <td>
+                        <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </td>
+                      <td>동아리 가입 절차가 어떻게 되나요?</td>
+                      <td>이민수</td>
+                      <td>2026.02.22</td>
+                      <td><span class="badge badge-warning">답변 대기</span></td>
+                    </tr>
+                    <tr class="detail-row">
+                      <td colspan="5">
+                        <div class="detail-content">
+                          <p><strong>문의 내용:</strong></p>
+                          <p>안녕하세요, 인하대 컴퓨터공학과 1학년 이민수입니다. IGRUS 동아리에 관심이 있어 가입하고 싶은데, 가입 절차가 어떻게 되는지 궁금합니다. 별도의 면접이나 시험이 있나요?</p>
+                          <div class="detail-reply-area">
+                            <textarea placeholder="답변을 입력하세요..."></textarea>
+                            <div class="reply-actions">
+                              <button class="btn btn-outline btn-sm">취소</button>
+                              <button class="btn btn-primary btn-sm">답변 등록</button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="expandable" onclick="toggleDetail(this)">
+                      <td>
+                        <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </td>
+                      <td>스터디 참여 방법 문의드립니다</td>
+                      <td>장하늘</td>
+                      <td>2026.02.21</td>
+                      <td><span class="badge badge-warning">답변 대기</span></td>
+                    </tr>
+                    <tr class="detail-row">
+                      <td colspan="5">
+                        <div class="detail-content">
+                          <p><strong>문의 내용:</strong></p>
+                          <p>현재 2학년인데, 알고리즘 스터디에 참여하고 싶습니다. 비회원도 참여 가능한가요? 참여 조건이 있다면 알려주세요.</p>
+                          <div class="detail-reply-area">
+                            <textarea placeholder="답변을 입력하세요..."></textarea>
+                            <div class="reply-actions">
+                              <button class="btn btn-outline btn-sm">취소</button>
+                              <button class="btn btn-primary btn-sm">답변 등록</button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="expandable" onclick="toggleDetail(this)">
+                      <td>
+                        <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </td>
+                      <td>회비 납부 관련 질문</td>
+                      <td>송다현</td>
+                      <td>2026.02.20</td>
+                      <td><span class="badge badge-warning">답변 대기</span></td>
+                    </tr>
+                    <tr class="detail-row">
+                      <td colspan="5">
+                        <div class="detail-content">
+                          <p><strong>문의 내용:</strong></p>
+                          <p>이번 학기 회비가 얼마인지, 납부 기간이 언제까지인지 알려주시면 감사하겠습니다.</p>
+                          <div class="detail-reply-area">
+                            <textarea placeholder="답변을 입력하세요..."></textarea>
+                            <div class="reply-actions">
+                              <button class="btn btn-outline btn-sm">취소</button>
+                              <button class="btn btn-primary btn-sm">답변 등록</button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="expandable" onclick="toggleDetail(this)">
+                      <td>
+                        <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </td>
+                      <td>프로젝트 참여 가능한가요?</td>
+                      <td>윤재현</td>
+                      <td>2026.02.18</td>
+                      <td><span class="badge badge-success">답변 완료</span></td>
+                    </tr>
+                    <tr class="detail-row">
+                      <td colspan="5">
+                        <div class="detail-content">
+                          <p><strong>문의 내용:</strong></p>
+                          <p>준회원 상태인데 동아리 프로젝트에 참여할 수 있나요?</p>
+                          <p style="margin-top: var(--s4); padding: var(--s3); background: var(--accent); border-radius: var(--r2);"><strong>답변:</strong> 네, 준회원도 프로젝트에 참여 가능합니다. 다만 정회원 전환 후 팀 리더 역할이 가능합니다.</p>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="expandable" onclick="toggleDetail(this)">
+                      <td>
+                        <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </td>
+                      <td>동아리방 위치 문의</td>
+                      <td>강수빈</td>
+                      <td>2026.02.16</td>
+                      <td><span class="badge badge-success">답변 완료</span></td>
+                    </tr>
+                    <tr class="detail-row">
+                      <td colspan="5">
+                        <div class="detail-content">
+                          <p><strong>문의 내용:</strong></p>
+                          <p>IGRUS 동아리방이 어디에 있나요? 방문 가능한 시간도 알려주세요.</p>
+                          <p style="margin-top: var(--s4); padding: var(--s3); background: var(--accent); border-radius: var(--r2);"><strong>답변:</strong> 동아리방은 하이테크관 B동 305호에 위치해 있습니다. 평일 10:00~18:00에 방문 가능합니다.</p>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="expandable" onclick="toggleDetail(this)">
+                      <td>
+                        <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </td>
+                      <td>MT 일정 문의</td>
+                      <td>정민호</td>
+                      <td>2026.02.14</td>
+                      <td><span class="badge badge-success">답변 완료</span></td>
+                    </tr>
+                    <tr class="detail-row">
+                      <td colspan="5">
+                        <div class="detail-content">
+                          <p><strong>문의 내용:</strong></p>
+                          <p>이번 학기 MT 일정이 정해졌나요?</p>
+                          <p style="margin-top: var(--s4); padding: var(--s3); background: var(--accent); border-radius: var(--r2);"><strong>답변:</strong> 아직 확정되지 않았습니다. 3월 중 공지 예정이니 공지사항을 확인해주세요.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============================== -->
+          <!-- 5. 스크랩 관리 -->
+          <!-- ============================== -->
+          <section class="page-section" id="page-scraps">
+            <div class="filter-tabs">
+              <button class="filter-tab active">전체 <span class="tab-count">28</span></button>
+              <button class="filter-tab">공지 <span class="tab-count">8</span></button>
+              <button class="filter-tab">자유 <span class="tab-count">12</span></button>
+              <button class="filter-tab">정보 <span class="tab-count">8</span></button>
+            </div>
+
+            <div class="table-wrapper">
+              <div class="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>제목</th>
+                      <th>게시판</th>
+                      <th>스크랩 수</th>
+                      <th>작성일</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>2026학년도 1학기 IGRUS 신입부원 모집 안내</td>
+                      <td><span class="badge badge-danger">공지</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          24
+                        </div>
+                      </td>
+                      <td>2026.02.20</td>
+                    </tr>
+                    <tr>
+                      <td>React 19 새로운 기능 정리</td>
+                      <td><span class="badge badge-info">정보</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          18
+                        </div>
+                      </td>
+                      <td>2026.02.18</td>
+                    </tr>
+                    <tr>
+                      <td>해커톤 후기: Build Day 참가 경험 공유</td>
+                      <td><span class="badge badge-primary">자유</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          15
+                        </div>
+                      </td>
+                      <td>2026.02.15</td>
+                    </tr>
+                    <tr>
+                      <td>동아리방 이용 규칙 변경 공지</td>
+                      <td><span class="badge badge-danger">공지</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          12
+                        </div>
+                      </td>
+                      <td>2026.02.18</td>
+                    </tr>
+                    <tr>
+                      <td>AI/ML 스터디 커리큘럼 공유합니다</td>
+                      <td><span class="badge badge-info">정보</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          11
+                        </div>
+                      </td>
+                      <td>2026.02.12</td>
+                    </tr>
+                    <tr>
+                      <td>신입부원 환영합니다! 자기소개 스레드</td>
+                      <td><span class="badge badge-primary">자유</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          9
+                        </div>
+                      </td>
+                      <td>2026.02.10</td>
+                    </tr>
+                    <tr>
+                      <td>Git 브랜치 전략 비교: Git Flow vs Trunk-Based</td>
+                      <td><span class="badge badge-info">정보</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          8
+                        </div>
+                      </td>
+                      <td>2026.02.08</td>
+                    </tr>
+                    <tr>
+                      <td>2025학년도 2학기 정기총회 결과 안내</td>
+                      <td><span class="badge badge-danger">공지</span></td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap: var(--s1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                          7
+                        </div>
+                      </td>
+                      <td>2026.02.10</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+              <button class="pagination-btn" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="pagination-btn active">1</button>
+              <button class="pagination-btn">2</button>
+              <button class="pagination-btn">3</button>
+              <button class="pagination-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    /* ===== 사이드바 토글 (모바일) ===== */
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarBackdrop').classList.toggle('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarBackdrop').classList.remove('open');
+    }
+
+    /* ===== 페이지(서브페이지) 전환 ===== */
+    var pageTitles = {
+      dashboard: '대시보드',
+      members: '회원 관리',
+      associates: '준회원 관리',
+      inquiries: '문의 관리',
+      scraps: '스크랩 관리'
+    };
+
+    function switchPage(pageId, navEl) {
+      /* 모든 페이지 숨기기 */
+      document.querySelectorAll('.page-section').forEach(function(s) {
+        s.classList.remove('active');
+      });
+      /* 대상 페이지 표시 */
+      var target = document.getElementById('page-' + pageId);
+      if (target) target.classList.add('active');
+
+      /* 네비 활성 상태 */
+      document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(n) {
+        n.classList.remove('active');
+      });
+      if (navEl) navEl.classList.add('active');
+
+      /* 헤더 타이틀 */
+      document.getElementById('pageTitle').textContent = pageTitles[pageId] || pageId;
+
+      /* 모바일이면 사이드바 닫기 */
+      if (window.innerWidth < 1024) closeSidebar();
+    }
+
+    /* ===== 문의 상세 토글 ===== */
+    function toggleDetail(row) {
+      var detailRow = row.nextElementSibling;
+      if (detailRow && detailRow.classList.contains('detail-row')) {
+        detailRow.classList.toggle('open');
+        var icon = row.querySelector('.expand-icon');
+        if (icon) icon.classList.toggle('open');
+      }
+    }
+  </script>
+</body>
+</html>
