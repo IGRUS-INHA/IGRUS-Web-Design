@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add archive/002-main-page/round-8/b.html archive/002-main-page/round-8/evaluation.json archive/002-main-page/round-9/ guidelines/DESIGN_GUIDE.md)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
+    ]
+  }
+}
