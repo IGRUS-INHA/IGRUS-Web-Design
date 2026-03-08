@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS Admin — 문의관리 (Design F – 채팅 스타일)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <style>
+    body { min-height: 100vh; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: var(--background); }
+    ::-webkit-scrollbar-thumb { background: rgba(3,166,158,0.5); border-radius: var(--r-full); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(3,166,158,0.7); }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(102,203,197,0.5); }
+    .dark ::-webkit-scrollbar-thumb:hover { background: rgba(102,203,197,0.7); }
+    html { scrollbar-width: thin; scrollbar-color: rgba(3,166,158,0.5) var(--background); }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ===== 사이드바 ===== */
+    .sidebar {
+      width: 256px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+      background: var(--card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease;
+    }
+    .sidebar-header { padding: var(--s5) var(--s5) var(--s4); border-bottom: 1px solid var(--border); }
+    .sidebar-logo { display: flex; align-items: center; gap: var(--s3); }
+    .sidebar-logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      border-radius: var(--r2); display: flex; align-items: center; justify-content: center;
+      color: var(--primary-foreground); font-size: 14px; font-weight: 700;
+    }
+    .dark .sidebar-logo-icon { background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5)); }
+    .sidebar-logo-text { display: flex; flex-direction: column; }
+    .sidebar-logo-title { font-size: 16px; font-weight: 700; color: var(--foreground); letter-spacing: -0.01em; line-height: 1.2; }
+    .sidebar-logo-sub { font-size: 11px; font-weight: 500; color: var(--muted-foreground); }
+    .sidebar-nav { display: flex; flex-direction: column; gap: var(--s1); flex: 1; padding: var(--s4) var(--s3); }
+    .sidebar-nav-label {
+      font-size: 11px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: 0.05em; padding: var(--s2) var(--s3); margin-top: var(--s2);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4);
+      border-radius: var(--r2); font-size: 14px; font-weight: 500; color: var(--muted-foreground);
+      cursor: pointer; transition: all 0.2s; position: relative; border: none; background: none;
+      width: 100%; text-align: left; font-family: 'Inter', sans-serif;
+    }
+    .nav-item:hover { background: var(--accent); color: var(--accent-foreground); }
+    .nav-item.active { background: var(--accent); color: var(--accent-foreground); font-weight: 600; }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: var(--s2); bottom: var(--s2);
+      width: 4px; background: var(--primary); border-radius: var(--r1);
+    }
+    .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-bottom { display: flex; flex-direction: column; gap: var(--s1); padding: var(--s4) var(--s3); border-top: 1px solid var(--border); }
+    .sidebar-bottom .nav-item { font-size: 13px; }
+
+    /* ===== 메인 영역 ===== */
+    .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--background); }
+
+    /* ===== 헤더 ===== */
+    .header {
+      height: 64px; border-bottom: 1px solid var(--border); display: flex; align-items: center;
+      justify-content: space-between; padding: 0 var(--s5); background: var(--card);
+      position: sticky; top: 0; z-index: 40;
+    }
+    .header-left { display: flex; align-items: center; gap: var(--s4); }
+    .hamburger {
+      display: none; width: 40px; height: 40px; align-items: center; justify-content: center;
+      background: none; border: 1px solid var(--border); border-radius: var(--r2);
+      cursor: pointer; color: var(--foreground); padding: 0;
+    }
+    .page-title { font-size: 18px; font-weight: 600; color: var(--foreground); }
+    .header-right { display: flex; align-items: center; gap: var(--s4); }
+    .admin-info { display: flex; align-items: center; gap: var(--s3); }
+    .admin-avatar {
+      width: 32px; height: 32px; border-radius: var(--r-full);
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary-foreground); font-size: 13px; font-weight: 600;
+    }
+    .dark .admin-avatar { background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5)); }
+    .admin-name { font-size: 14px; font-weight: 500; color: var(--foreground); }
+    .admin-role-badge {
+      display: inline-flex; align-items: center; padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; background: var(--accent);
+      color: var(--accent-foreground); border-radius: var(--r1);
+    }
+    .theme-toggle {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      background: var(--secondary); border: 1px solid var(--border); border-radius: var(--r2);
+      cursor: pointer; color: var(--foreground); transition: all 0.2s; padding: 0;
+    }
+    .theme-toggle:hover { background: var(--accent); color: var(--accent-foreground); }
+
+    /* ===== 채팅 레이아웃 ===== */
+    .chat-layout {
+      flex: 1; display: flex; min-height: 0; overflow: hidden;
+    }
+
+    /* ===== 대화 목록 (좌측 35%) ===== */
+    .conversation-list {
+      width: 35%; min-width: 280px; max-width: 420px;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      background: var(--card);
+    }
+    .conversation-list-header {
+      padding: var(--s4) var(--s4) var(--s3);
+      border-bottom: 1px solid var(--border);
+    }
+    .conversation-list-title {
+      font-size: 14px; font-weight: 600; color: var(--foreground);
+      margin-bottom: var(--s3);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .conversation-count {
+      font-size: 12px; font-weight: 500; color: var(--muted-foreground);
+    }
+    .conversation-count span {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 var(--s1);
+      background: var(--primary); color: var(--primary-foreground);
+      border-radius: var(--r-full); font-size: 11px; font-weight: 600;
+      margin-left: var(--s1);
+    }
+    .search-bar {
+      position: relative; display: flex; align-items: center;
+    }
+    .search-bar input {
+      width: 100%; padding: var(--s2) var(--s4) var(--s2) 36px;
+      border: 1px solid var(--border); border-radius: var(--r-full);
+      background: var(--secondary); color: var(--foreground);
+      font-size: 13px; font-family: 'Inter', sans-serif;
+      outline: none; transition: all 0.2s;
+    }
+    .search-bar input::placeholder { color: var(--muted-foreground); }
+    .search-bar input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(3,166,158,0.1); }
+    .dark .search-bar input:focus { box-shadow: 0 0 0 3px rgba(102,203,197,0.15); }
+    .search-bar svg {
+      position: absolute; left: var(--s3); width: 16px; height: 16px;
+      color: var(--muted-foreground); pointer-events: none;
+    }
+
+    /* 탭 필터 */
+    .conversation-tabs {
+      display: flex; gap: var(--s1); padding: var(--s3) var(--s4) 0;
+    }
+    .conversation-tab {
+      padding: var(--s1) var(--s3); border-radius: var(--r-full);
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      border: none; background: none; color: var(--muted-foreground);
+      font-family: 'Inter', sans-serif; transition: all 0.2s;
+    }
+    .conversation-tab:hover { background: var(--secondary); color: var(--foreground); }
+    .conversation-tab.active { background: var(--primary); color: var(--primary-foreground); }
+
+    /* 대화 카드 목록 */
+    .conversation-items {
+      flex: 1; overflow-y: auto; padding: var(--s2) 0;
+    }
+
+    /* 섹션 라벨 */
+    .section-label {
+      font-size: 11px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: var(--s3) var(--s4) var(--s1);
+    }
+
+    /* 대화 카드 */
+    .conversation-card {
+      display: flex; align-items: flex-start; gap: var(--s3);
+      padding: var(--s3) var(--s4); margin: 0 var(--s2);
+      border-radius: var(--r2); cursor: pointer;
+      transition: all 0.2s; position: relative;
+      border-left: 3px solid transparent;
+    }
+    .conversation-card:hover { background: var(--secondary); }
+    .conversation-card.active {
+      background: var(--accent);
+      border-left-color: var(--primary);
+    }
+    .conversation-card.unread { background: rgba(3,166,158,0.04); }
+    .dark .conversation-card.unread { background: rgba(102,203,197,0.06); }
+
+    .conv-avatar {
+      width: 40px; height: 40px; border-radius: var(--r-full); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: var(--primary-foreground);
+    }
+    .conv-avatar.teal { background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6)); }
+    .dark .conv-avatar.teal { background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5)); }
+    .conv-avatar.blue { background: linear-gradient(135deg, #17A2B8, #138496); }
+    .conv-avatar.orange { background: linear-gradient(135deg, #FFC107, #e0a800); color: var(--gray-8); }
+    .conv-avatar.red { background: linear-gradient(135deg, #DC3545, #c82333); }
+    .conv-avatar.green { background: linear-gradient(135deg, #28A745, #218838); }
+    .conv-avatar.purple { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
+    .conv-avatar.pink { background: linear-gradient(135deg, #e83e8c, #d63384); }
+    .conv-avatar.indigo { background: linear-gradient(135deg, #6610f2, #520dc2); }
+
+    .conv-content { flex: 1; min-width: 0; }
+    .conv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+    .conv-name { font-size: 13px; font-weight: 600; color: var(--foreground); }
+    .conversation-card.unread .conv-name { font-weight: 700; }
+    .conv-time { font-size: 11px; color: var(--muted-foreground); flex-shrink: 0; }
+    .conv-preview {
+      font-size: 12px; color: var(--muted-foreground); line-height: 1.4;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .conversation-card.unread .conv-preview { color: var(--secondary-foreground); }
+    .conv-meta { display: flex; align-items: center; gap: var(--s2); margin-top: 2px; }
+    .conv-category {
+      font-size: 10px; font-weight: 500; padding: 1px var(--s2);
+      border-radius: var(--r1); background: var(--secondary); color: var(--secondary-foreground);
+    }
+    .unread-dot {
+      width: 8px; height: 8px; border-radius: var(--r-full);
+      background: var(--primary); flex-shrink: 0; margin-left: auto;
+    }
+
+    /* ===== 대화 뷰 (우측 65%) ===== */
+    .chat-view {
+      flex: 1; display: flex; flex-direction: column; min-width: 0;
+      background: var(--background);
+    }
+
+    /* 빈 상태 */
+    .chat-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: var(--s4); color: var(--muted-foreground);
+    }
+    .chat-empty svg { width: 64px; height: 64px; opacity: 0.3; }
+    .chat-empty-title { font-size: 16px; font-weight: 600; color: var(--foreground); opacity: 0.5; }
+    .chat-empty-desc { font-size: 13px; }
+
+    /* 대화 헤더 */
+    .chat-header {
+      padding: var(--s4) var(--s5);
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chat-header-left { display: flex; align-items: center; gap: var(--s3); }
+    .chat-header-avatar {
+      width: 36px; height: 36px; border-radius: var(--r-full);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: var(--primary-foreground);
+    }
+    .chat-header-info { display: flex; flex-direction: column; }
+    .chat-header-name { font-size: 15px; font-weight: 600; color: var(--foreground); }
+    .chat-header-meta { display: flex; align-items: center; gap: var(--s2); }
+    .chat-header-date { font-size: 12px; color: var(--muted-foreground); }
+    .badge {
+      display: inline-flex; align-items: center; padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; border-radius: var(--r1);
+    }
+    .badge-category { background: var(--secondary); color: var(--secondary-foreground); }
+    .badge-waiting { background: #FFF3CD; color: #856404; }
+    .dark .badge-waiting { background: rgba(255,193,7,0.2); color: #FFC107; }
+    .badge-done { background: #D4EDDA; color: #155724; }
+    .dark .badge-done { background: rgba(40,167,69,0.2); color: #28A745; }
+    .chat-header-actions { display: flex; gap: var(--s2); }
+    .chat-action-btn {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: var(--r2); background: var(--secondary);
+      cursor: pointer; color: var(--foreground); transition: all 0.2s; padding: 0;
+    }
+    .chat-action-btn:hover { background: var(--accent); color: var(--accent-foreground); }
+
+    /* 채팅 메시지 영역 */
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: var(--s5);
+      display: flex; flex-direction: column; gap: var(--s4);
+    }
+
+    /* 날짜 구분선 */
+    .chat-date-divider {
+      display: flex; align-items: center; gap: var(--s4);
+      font-size: 11px; font-weight: 500; color: var(--muted-foreground);
+      padding: var(--s2) 0;
+    }
+    .chat-date-divider::before,
+    .chat-date-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* 메시지 버블 */
+    .message { display: flex; gap: var(--s3); max-width: 75%; }
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+    .message.admin { align-self: flex-start; }
+
+    .message-avatar {
+      width: 32px; height: 32px; border-radius: var(--r-full); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600;
+    }
+    .message.admin .message-avatar {
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      color: var(--primary-foreground);
+    }
+    .dark .message.admin .message-avatar {
+      background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5));
+    }
+
+    .message-body { display: flex; flex-direction: column; gap: 2px; }
+    .message.user .message-body { align-items: flex-end; }
+    .message.admin .message-body { align-items: flex-start; }
+
+    .message-sender { font-size: 11px; font-weight: 600; color: var(--muted-foreground); margin-bottom: 2px; }
+
+    .message-bubble {
+      padding: var(--s3) var(--s4); font-size: 14px; line-height: 1.5;
+      color: var(--foreground); word-break: break-word;
+    }
+    .message.user .message-bubble {
+      background: var(--secondary);
+      border-radius: var(--r3) var(--r3) var(--r1) var(--r3);
+    }
+    .message.admin .message-bubble {
+      background: var(--accent);
+      color: var(--accent-foreground);
+      border-radius: var(--r3) var(--r3) var(--r3) var(--r1);
+    }
+    .dark .message.admin .message-bubble {
+      color: var(--accent-foreground);
+    }
+
+    .message-time { font-size: 10px; color: var(--muted-foreground); padding: 0 var(--s1); }
+
+    /* 답변 입력 영역 */
+    .chat-input-area {
+      padding: var(--s4) var(--s5);
+      border-top: 1px solid var(--border);
+      background: var(--card);
+    }
+    .chat-input-wrapper {
+      display: flex; align-items: flex-end; gap: var(--s3);
+      background: var(--secondary); border: 1px solid var(--border);
+      border-radius: var(--r3); padding: var(--s3);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .chat-input-wrapper:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3,166,158,0.1);
+    }
+    .dark .chat-input-wrapper:focus-within {
+      box-shadow: 0 0 0 3px rgba(102,203,197,0.15);
+    }
+    .chat-input-wrapper textarea {
+      flex: 1; border: none; background: transparent; color: var(--foreground);
+      font-size: 14px; font-family: 'Inter', sans-serif; resize: none;
+      outline: none; min-height: 24px; max-height: 120px; line-height: 1.5;
+    }
+    .chat-input-wrapper textarea::placeholder { color: var(--muted-foreground); }
+    .send-btn {
+      width: 36px; height: 36px; border-radius: var(--r-full); border: none;
+      background: var(--primary); color: var(--primary-foreground);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    }
+    .send-btn:hover { background: var(--brand-l5); transform: scale(1.05); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .chat-input-hint {
+      font-size: 11px; color: var(--muted-foreground); margin-top: var(--s2); padding-left: var(--s1);
+    }
+
+    /* 답변 완료 상태 */
+    .chat-input-disabled {
+      padding: var(--s4) var(--s5);
+      border-top: 1px solid var(--border);
+      background: var(--card);
+      text-align: center;
+    }
+    .chat-input-disabled-msg {
+      display: inline-flex; align-items: center; gap: var(--s2);
+      padding: var(--s2) var(--s4); border-radius: var(--r-full);
+      background: #D4EDDA; color: #155724;
+      font-size: 13px; font-weight: 500;
+    }
+    .dark .chat-input-disabled-msg { background: rgba(40,167,69,0.2); color: #28A745; }
+
+    /* ===== 모바일 백드롭 ===== */
+    .sidebar-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 45;
+    }
+
+    /* ===== 모바일 대응 ===== */
+    @media (max-width: 991px) {
+      .sidebar {
+        position: fixed; left: 0; top: 0; transform: translateX(-100%);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-backdrop.show { display: block; }
+      .hamburger { display: flex; }
+      .admin-name { display: none; }
+
+      .chat-layout { flex-direction: column; }
+      .conversation-list {
+        width: 100%; max-width: none; min-width: auto;
+        border-right: none; border-bottom: 1px solid var(--border);
+      }
+      .conversation-items { max-height: 280px; }
+      .chat-view { min-height: 400px; }
+
+      /* 모바일에서 대화 선택 시 전체 화면 */
+      .chat-layout.chat-open .conversation-list { display: none; }
+      .chat-layout.chat-open .chat-view { display: flex; }
+      .mobile-back-btn { display: flex !important; }
+    }
+
+    @media (max-width: 575px) {
+      .conversation-items { max-height: 240px; }
+      .chat-messages { padding: var(--s4); }
+      .chat-input-area { padding: var(--s3); }
+      .message { max-width: 88%; }
+    }
+
+    .mobile-back-btn {
+      display: none; width: 36px; height: 36px; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: var(--r2); background: var(--secondary);
+      cursor: pointer; color: var(--foreground); padding: 0; transition: all 0.2s;
+    }
+    .mobile-back-btn:hover { background: var(--accent); color: var(--accent-foreground); }
+
+    /* ===== 애니메이션 ===== */
+    @media (prefers-reduced-motion: no-preference) {
+      .conversation-card { transition: all 0.2s ease; }
+      .message-bubble { animation: bubbleIn 0.25s ease-out; }
+      @keyframes bubbleIn {
+        from { opacity: 0; transform: translateY(8px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 사이드바 백드롭 (모바일) -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <!-- ===== 사이드바 ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="sidebar-logo-text">
+            <span class="sidebar-logo-title">IGRUS Admin</span>
+            <span class="sidebar-logo-sub">관리자 패널</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <span class="sidebar-nav-label">관리</span>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+          대시보드
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+          회원관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></span>
+          게시판 관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          행사 관리
+        </button>
+        <button class="nav-item active">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+          문의관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+          설문 관리
+        </button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" onclick="toggleTheme()">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
+          테마 변경
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+          로그아웃
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== 메인 영역 ===== -->
+    <div class="main-area">
+      <!-- 헤더 -->
+      <header class="header">
+        <div class="header-left">
+          <button class="hamburger" onclick="toggleSidebar()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span class="page-title">문의관리</span>
+        </div>
+        <div class="header-right">
+          <div class="admin-info">
+            <div class="admin-avatar">관</div>
+            <span class="admin-name">관리자</span>
+            <span class="admin-role-badge">Admin</span>
+          </div>
+          <button class="theme-toggle" onclick="toggleTheme()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- 채팅 레이아웃 -->
+      <div class="chat-layout" id="chatLayout">
+        <!-- 좌측: 대화 목록 -->
+        <div class="conversation-list">
+          <div class="conversation-list-header">
+            <div class="conversation-list-title">
+              대화 목록
+              <span class="conversation-count">답변대기 <span>3</span></span>
+            </div>
+            <div class="search-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="이름, 내용으로 검색..." />
+            </div>
+            <div class="conversation-tabs">
+              <button class="conversation-tab active">전체 (8)</button>
+              <button class="conversation-tab">답변대기 (3)</button>
+              <button class="conversation-tab">답변완료 (5)</button>
+            </div>
+          </div>
+
+          <div class="conversation-items">
+            <!-- 답변대기 섹션 -->
+            <div class="section-label">답변대기</div>
+
+            <!-- 답변대기 1 (선택됨) -->
+            <div class="conversation-card unread active" onclick="selectConversation(this, 'conv1')">
+              <div class="conv-avatar teal">김</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">김도윤</span>
+                  <span class="conv-time">오늘</span>
+                </div>
+                <div class="conv-preview">동아리 가입 절차가 어떻게 되나요? 서류 제출이...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">가입 문의</span>
+                  <div class="unread-dot"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변대기 2 -->
+            <div class="conversation-card unread" onclick="selectConversation(this, 'conv2')">
+              <div class="conv-avatar blue">박</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">박서현</span>
+                  <span class="conv-time">어제</span>
+                </div>
+                <div class="conv-preview">프로젝트 팀 변경이 가능한지 문의드립니다...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">활동 문의</span>
+                  <div class="unread-dot"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변대기 3 -->
+            <div class="conversation-card unread" onclick="selectConversation(this, 'conv3')">
+              <div class="conv-avatar orange">이</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">이하준</span>
+                  <span class="conv-time">2일 전</span>
+                </div>
+                <div class="conv-preview">회비 납부 방법과 금액에 대해 알고 싶습니다...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">회비 문의</span>
+                  <div class="unread-dot"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변완료 섹션 -->
+            <div class="section-label" style="margin-top: var(--s2);">답변완료</div>
+
+            <!-- 답변완료 1 -->
+            <div class="conversation-card" onclick="selectConversation(this, 'conv4')">
+              <div class="conv-avatar red">최</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">최수아</span>
+                  <span class="conv-time">3일 전</span>
+                </div>
+                <div class="conv-preview">관리자: 네, MT는 3월 15일로 예정되어 있습...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">행사 문의</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변완료 2 -->
+            <div class="conversation-card" onclick="selectConversation(this, 'conv5')">
+              <div class="conv-avatar green">정</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">정민준</span>
+                  <span class="conv-time">5일 전</span>
+                </div>
+                <div class="conv-preview">관리자: 스터디룸 예약은 매주 월요일에 갱신...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">시설 문의</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변완료 3 -->
+            <div class="conversation-card" onclick="selectConversation(this, 'conv6')">
+              <div class="conv-avatar purple">한</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">한지우</span>
+                  <span class="conv-time">1주 전</span>
+                </div>
+                <div class="conv-preview">관리자: 네, 포트폴리오 제출 마감은 이번 주...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">활동 문의</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변완료 4 -->
+            <div class="conversation-card" onclick="selectConversation(this, 'conv7')">
+              <div class="conv-avatar pink">윤</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">윤서연</span>
+                  <span class="conv-time">1주 전</span>
+                </div>
+                <div class="conv-preview">관리자: 동아리 증명서는 학생회관 301호에서...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">기타 문의</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변완료 5 -->
+            <div class="conversation-card" onclick="selectConversation(this, 'conv8')">
+              <div class="conv-avatar indigo">송</div>
+              <div class="conv-content">
+                <div class="conv-header">
+                  <span class="conv-name">송예준</span>
+                  <span class="conv-time">2주 전</span>
+                </div>
+                <div class="conv-preview">관리자: 비밀번호 변경은 마이페이지에서 가능...</div>
+                <div class="conv-meta">
+                  <span class="conv-category">계정 문의</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측: 대화 뷰 -->
+        <div class="chat-view" id="chatView">
+          <!-- 대화 내용 (conv1 선택 상태) -->
+          <div class="chat-content" id="chatContent">
+            <!-- 대화 헤더 -->
+            <div class="chat-header">
+              <div class="chat-header-left">
+                <button class="mobile-back-btn" onclick="goBack()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <div class="chat-header-avatar conv-avatar teal">김</div>
+                <div class="chat-header-info">
+                  <span class="chat-header-name">김도윤</span>
+                  <div class="chat-header-meta">
+                    <span class="badge badge-category">가입 문의</span>
+                    <span class="badge badge-waiting">답변대기</span>
+                    <span class="chat-header-date">2026.03.08</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chat-header-actions">
+                <button class="chat-action-btn" title="삭제">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- 메시지 영역 -->
+            <div class="chat-messages">
+              <div class="chat-date-divider">2026년 3월 8일 (오늘)</div>
+
+              <!-- 사용자 메시지 -->
+              <div class="message user">
+                <div class="message-body">
+                  <span class="message-sender">김도윤</span>
+                  <div class="message-bubble">
+                    안녕하세요! IGRUS 동아리에 가입하고 싶은데요, 가입 절차가 어떻게 되나요? 서류 제출이 필요한지, 면접이 있는지 궁금합니다.
+                  </div>
+                  <span class="message-time">오전 10:23</span>
+                </div>
+              </div>
+
+              <div class="message user">
+                <div class="message-body">
+                  <div class="message-bubble">
+                    그리고 지금도 가입 신청이 가능한 시기인지도 알려주시면 감사하겠습니다!
+                  </div>
+                  <span class="message-time">오전 10:24</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답변 입력 (답변대기 상태) -->
+            <div class="chat-input-area">
+              <div class="chat-input-wrapper">
+                <textarea rows="1" placeholder="답변을 입력하세요..." oninput="autoResize(this)"></textarea>
+                <button class="send-btn" title="전송">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+              <div class="chat-input-hint">Shift + Enter로 줄바꿈, Enter로 전송</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 사이드바 토글
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarBackdrop').classList.toggle('show');
+    }
+
+    // 테마 토글
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    // textarea 자동 높이 조절
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    // 대화 데이터 (8건)
+    const conversations = {
+      conv1: {
+        name: '김도윤', avatar: 'teal', initial: '김',
+        category: '가입 문의', status: 'waiting', date: '2026.03.08',
+        messages: [
+          { type: 'user', text: '안녕하세요! IGRUS 동아리에 가입하고 싶은데요, 가입 절차가 어떻게 되나요? 서류 제출이 필요한지, 면접이 있는지 궁금합니다.', time: '오전 10:23' },
+          { type: 'user', text: '그리고 지금도 가입 신청이 가능한 시기인지도 알려주시면 감사하겠습니다!', time: '오전 10:24' }
+        ]
+      },
+      conv2: {
+        name: '박서현', avatar: 'blue', initial: '박',
+        category: '활동 문의', status: 'waiting', date: '2026.03.07',
+        messages: [
+          { type: 'user', text: '프로젝트 팀 변경이 가능한지 문의드립니다. 현재 팀에서 다른 팀으로 이동하고 싶은데 절차가 어떻게 되나요?', time: '오후 3:45' }
+        ]
+      },
+      conv3: {
+        name: '이하준', avatar: 'orange', initial: '이',
+        category: '회비 문의', status: 'waiting', date: '2026.03.06',
+        messages: [
+          { type: 'user', text: '회비 납부 방법과 금액에 대해 알고 싶습니다. 계좌이체만 가능한가요?', time: '오후 1:12' },
+          { type: 'user', text: '혹시 분할 납부도 가능한지 궁금합니다.', time: '오후 1:13' }
+        ]
+      },
+      conv4: {
+        name: '최수아', avatar: 'red', initial: '최',
+        category: '행사 문의', status: 'done', date: '2026.03.05',
+        messages: [
+          { type: 'user', text: '이번 학기 MT 날짜가 언제인지 알 수 있을까요? 일정 조정이 필요해서요.', time: '오전 11:30' },
+          { type: 'admin', text: '네, MT는 3월 15일로 예정되어 있습니다. 장소는 가평이고, 참가비는 3만원입니다. 자세한 내용은 공지사항을 참고해주세요!', time: '오후 2:15' }
+        ]
+      },
+      conv5: {
+        name: '정민준', avatar: 'green', initial: '정',
+        category: '시설 문의', status: 'done', date: '2026.03.03',
+        messages: [
+          { type: 'user', text: '동아리 스터디룸 예약 방법이 궁금합니다. 홈페이지에서 가능한가요?', time: '오전 9:00' },
+          { type: 'admin', text: '스터디룸 예약은 매주 월요일에 갱신됩니다. 홈페이지 > 시설예약 메뉴에서 원하시는 날짜와 시간을 선택하시면 됩니다.', time: '오전 10:30' },
+          { type: 'user', text: '감사합니다! 한 번에 최대 몇 시간까지 예약 가능한가요?', time: '오전 10:45' },
+          { type: 'admin', text: '한 번에 최대 3시간까지 예약 가능합니다. 추가 시간이 필요하시면 다시 예약해주세요.', time: '오전 11:00' }
+        ]
+      },
+      conv6: {
+        name: '한지우', avatar: 'purple', initial: '한',
+        category: '활동 문의', status: 'done', date: '2026.03.01',
+        messages: [
+          { type: 'user', text: '포트폴리오 제출 마감일이 언제인가요?', time: '오후 4:20' },
+          { type: 'admin', text: '네, 포트폴리오 제출 마감은 이번 주 금요일(3월 7일)까지입니다. 제출은 구글 폼을 통해 해주시면 됩니다.', time: '오후 5:00' }
+        ]
+      },
+      conv7: {
+        name: '윤서연', avatar: 'pink', initial: '윤',
+        category: '기타 문의', status: 'done', date: '2026.02.28',
+        messages: [
+          { type: 'user', text: '동아리 활동 증명서 발급이 가능한가요?', time: '오전 11:00' },
+          { type: 'admin', text: '동아리 증명서는 학생회관 301호에서 발급 가능합니다. 학생증 지참해주시고, 발급까지 약 2-3일 소요됩니다.', time: '오후 1:30' }
+        ]
+      },
+      conv8: {
+        name: '송예준', avatar: 'indigo', initial: '송',
+        category: '계정 문의', status: 'done', date: '2026.02.22',
+        messages: [
+          { type: 'user', text: '비밀번호를 잊어버렸는데 어떻게 변경할 수 있나요?', time: '오후 2:00' },
+          { type: 'admin', text: '비밀번호 변경은 마이페이지에서 가능합니다. 로그인 화면의 "비밀번호 찾기"를 통해 이메일 인증 후 재설정해주세요.', time: '오후 3:20' }
+        ]
+      }
+    };
+
+    // 대화 선택
+    function selectConversation(el, convId) {
+      // 카드 활성화
+      document.querySelectorAll('.conversation-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      // 모바일: 대화 뷰로 전환
+      document.getElementById('chatLayout').classList.add('chat-open');
+
+      const conv = conversations[convId];
+      renderChat(conv);
+    }
+
+    // 채팅 렌더링
+    function renderChat(conv) {
+      const chatContent = document.getElementById('chatContent');
+      const statusBadge = conv.status === 'waiting'
+        ? '<span class="badge badge-waiting">답변대기</span>'
+        : '<span class="badge badge-done">답변완료</span>';
+
+      let messagesHtml = '<div class="chat-date-divider">' + conv.date + '</div>';
+      conv.messages.forEach((msg, i) => {
+        if (msg.type === 'user') {
+          messagesHtml += `
+            <div class="message user">
+              <div class="message-body">
+                ${i === 0 ? '<span class="message-sender">' + conv.name + '</span>' : ''}
+                <div class="message-bubble">${msg.text}</div>
+                <span class="message-time">${msg.time}</span>
+              </div>
+            </div>`;
+        } else {
+          messagesHtml += `
+            <div class="message admin">
+              <div class="message-avatar">관</div>
+              <div class="message-body">
+                ${(i === 0 || conv.messages[i-1].type !== 'admin') ? '<span class="message-sender">관리자</span>' : ''}
+                <div class="message-bubble">${msg.text}</div>
+                <span class="message-time">${msg.time}</span>
+              </div>
+            </div>`;
+        }
+      });
+
+      const inputArea = conv.status === 'waiting'
+        ? `<div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <textarea rows="1" placeholder="답변을 입력하세요..." oninput="autoResize(this)"></textarea>
+              <button class="send-btn" title="전송">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+            <div class="chat-input-hint">Shift + Enter로 줄바꿈, Enter로 전송</div>
+          </div>`
+        : `<div class="chat-input-disabled">
+            <div class="chat-input-disabled-msg">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              답변이 완료된 문의입니다
+            </div>
+          </div>`;
+
+      chatContent.innerHTML = `
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <button class="mobile-back-btn" onclick="goBack()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="chat-header-avatar conv-avatar ${conv.avatar}">${conv.initial}</div>
+            <div class="chat-header-info">
+              <span class="chat-header-name">${conv.name}</span>
+              <div class="chat-header-meta">
+                <span class="badge badge-category">${conv.category}</span>
+                ${statusBadge}
+                <span class="chat-header-date">${conv.date}</span>
+              </div>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="chat-action-btn" title="삭제">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="chat-messages">${messagesHtml}</div>
+        ${inputArea}`;
+    }
+
+    // 모바일 뒤로가기
+    function goBack() {
+      document.getElementById('chatLayout').classList.remove('chat-open');
+    }
+  </script>
+</body>
+</html>
