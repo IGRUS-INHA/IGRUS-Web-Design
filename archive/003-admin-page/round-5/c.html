@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS Admin — 회원관리</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <style>
+    body { min-height: 100vh; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: var(--background); }
+    ::-webkit-scrollbar-thumb { background: rgba(3,166,158,0.5); border-radius: var(--r-full); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(3,166,158,0.7); }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(102,203,197,0.5); }
+    .dark ::-webkit-scrollbar-thumb:hover { background: rgba(102,203,197,0.7); }
+    html { scrollbar-width: thin; scrollbar-color: rgba(3,166,158,0.5) var(--background); }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ===== 사이드바 ===== */
+    .sidebar {
+      width: 240px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+      background: var(--card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease;
+    }
+    .sidebar-header { padding: var(--s5) var(--s5) var(--s4); border-bottom: 1px solid var(--border); }
+    .sidebar-logo { display: flex; align-items: center; gap: var(--s3); }
+    .sidebar-logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      border-radius: var(--r2); display: flex; align-items: center; justify-content: center;
+      color: var(--primary-foreground);
+    }
+    .dark .sidebar-logo-icon { background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5)); }
+    .sidebar-logo-text { display: flex; flex-direction: column; }
+    .sidebar-logo-title { font-size: 16px; font-weight: 700; color: var(--foreground); letter-spacing: -0.01em; line-height: 1.2; }
+    .sidebar-logo-sub { font-size: 11px; font-weight: 500; color: var(--muted-foreground); }
+    .sidebar-nav { display: flex; flex-direction: column; gap: var(--s1); flex: 1; padding: var(--s4) var(--s3); }
+    .sidebar-nav-label {
+      font-size: 11px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: 0.05em; padding: var(--s2) var(--s3); margin-top: var(--s2);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4);
+      border-radius: var(--r2); font-size: 14px; font-weight: 500; color: var(--muted-foreground);
+      cursor: pointer; transition: all 0.2s; position: relative; border: none; background: none;
+      width: 100%; text-align: left; font-family: 'Inter', sans-serif;
+    }
+    .nav-item:hover { background: var(--accent); color: var(--accent-foreground); }
+    .nav-item.active { background: var(--accent); color: var(--accent-foreground); font-weight: 600; }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: var(--s2); bottom: var(--s2);
+      width: 4px; background: var(--primary); border-radius: var(--r1);
+    }
+    .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-bottom { display: flex; flex-direction: column; gap: var(--s1); padding: var(--s4) var(--s3); border-top: 1px solid var(--border); }
+    .sidebar-bottom .nav-item { font-size: 13px; }
+
+    /* ===== 메인 영역 ===== */
+    .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--background); }
+
+    /* ===== 헤더 ===== */
+    .header {
+      height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center;
+      justify-content: space-between; padding: 0 var(--s5); background: var(--card);
+      position: sticky; top: 0; z-index: 40;
+    }
+    .header-left { display: flex; align-items: center; gap: var(--s4); }
+    .hamburger {
+      display: none; width: 36px; height: 36px; align-items: center; justify-content: center;
+      background: none; border: 1px solid var(--border); border-radius: var(--r2);
+      cursor: pointer; color: var(--foreground); padding: 0;
+    }
+    .page-title { font-size: 16px; font-weight: 600; color: var(--foreground); }
+    .header-right { display: flex; align-items: center; gap: var(--s4); }
+    .admin-info { display: flex; align-items: center; gap: var(--s3); }
+    .admin-avatar {
+      width: 28px; height: 28px; border-radius: var(--r-full);
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary-foreground); font-size: 11px; font-weight: 600;
+    }
+    .dark .admin-avatar { background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5)); }
+    .admin-name { font-size: 13px; font-weight: 500; color: var(--foreground); }
+    .admin-role-badge {
+      display: inline-flex; align-items: center; padding: 2px var(--s2);
+      font-size: 10px; font-weight: 600; background: var(--accent);
+      color: var(--accent-foreground); border-radius: var(--r1);
+    }
+    .theme-toggle {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      background: var(--secondary); border: 1px solid var(--border); border-radius: var(--r2);
+      cursor: pointer; color: var(--foreground); transition: all 0.2s; padding: 0;
+    }
+    .theme-toggle:hover { background: var(--accent); color: var(--accent-foreground); }
+
+    /* ===== 콘텐츠 영역 ===== */
+    .content { flex: 1; padding: var(--s4) var(--s5); max-width: 1280px; width: 100%; margin: 0 auto; }
+
+    /* ===== 인라인 페이지 헤더 + 수치 ===== */
+    .page-header-row {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: var(--s3); flex-wrap: wrap; gap: var(--s3);
+    }
+    .page-header-left { display: flex; flex-direction: column; gap: 2px; }
+    .page-header-label {
+      font-size: 11px; font-weight: 600; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .page-header-title { font-size: 22px; font-weight: 700; color: var(--foreground); line-height: 1.2; }
+    .inline-stats {
+      display: flex; align-items: center; gap: var(--s5); flex-wrap: wrap;
+    }
+    .inline-stat {
+      display: flex; align-items: baseline; gap: var(--s1);
+    }
+    .inline-stat-value { font-size: 20px; font-weight: 700; line-height: 1; }
+    .inline-stat-label { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+    .inline-stat.total .inline-stat-value { color: var(--primary); }
+    .inline-stat.active .inline-stat-value { color: #28A745; }
+    .inline-stat.dormant .inline-stat-value { color: #FFC107; }
+    .inline-stat.pending .inline-stat-value { color: #17A2B8; }
+
+    /* ===== 하나의 워크스페이스 컨테이너 ===== */
+    .workspace {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--r3);
+      overflow: hidden; display: flex; flex-direction: column; min-height: 600px;
+    }
+
+    /* ===== 차트 헤더 영역 (테이블 상단 배경 차트) ===== */
+    .chart-header {
+      position: relative; height: 100px; overflow: hidden;
+      background: var(--card);
+    }
+    .chart-header canvas {
+      width: 100%; height: 100%; display: block;
+    }
+    /* 검색바 오버레이 — 차트 위에 */
+    .search-overlay {
+      position: absolute; bottom: var(--s3); left: var(--s4); right: var(--s4);
+      display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1; min-width: 160px; display: flex; align-items: center; gap: var(--s2);
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+      border: 1px solid var(--border); border-radius: var(--r-full);
+      padding: var(--s2) var(--s4); transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .dark .search-box {
+      background: rgba(52,58,64,0.85);
+    }
+    .search-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3,166,158,0.15);
+    }
+    .search-box input {
+      flex: 1; border: none; background: transparent; outline: none;
+      font-size: 13px; font-family: 'Inter', sans-serif; color: var(--foreground);
+    }
+    .search-box input::placeholder { color: var(--muted-foreground); }
+    .search-icon { color: var(--muted-foreground); flex-shrink: 0; }
+
+    /* 탭 필터 — 밑줄 스타일 */
+    .tab-filters {
+      display: flex; align-items: center; gap: var(--s4);
+    }
+    .tab-filter {
+      font-size: 13px; font-weight: 500; color: var(--muted-foreground);
+      background: none; border: none; padding: var(--s1) 0;
+      cursor: pointer; position: relative; font-family: 'Inter', sans-serif;
+      transition: color 0.2s;
+    }
+    .tab-filter:hover { color: var(--foreground); }
+    .tab-filter.active {
+      color: var(--primary); font-weight: 600;
+    }
+    .tab-filter.active::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -2px;
+      height: 2px; background: var(--primary); border-radius: var(--r1);
+    }
+    .tab-filter .tab-count {
+      font-size: 11px; font-weight: 600; margin-left: var(--s1);
+      color: var(--muted-foreground);
+    }
+    .tab-filter.active .tab-count { color: var(--primary); }
+
+    /* ===== 마스터-디테일 레이아웃 (하나의 워크스페이스 안) ===== */
+    .master-detail {
+      display: flex; flex: 1; min-height: 0;
+    }
+
+    /* 좌측 테이블 영역 (65%) */
+    .table-area {
+      flex: 65; display: flex; flex-direction: column; min-width: 0;
+    }
+
+    /* 테이블 */
+    .member-table { width: 100%; border-collapse: collapse; }
+    .member-table thead th {
+      text-align: left; padding: var(--s3) var(--s4); font-size: 11px; font-weight: 600;
+      color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border); background: var(--secondary);
+      position: sticky; top: 0; z-index: 2;
+    }
+    .member-table tbody tr {
+      cursor: pointer; transition: background 0.15s;
+    }
+    .member-table tbody tr:hover { background: var(--muted); }
+    .member-table tbody tr.selected { background: var(--accent); }
+    .member-table tbody td {
+      padding: var(--s3) var(--s4); font-size: 13px; color: var(--foreground);
+      border-bottom: 1px solid var(--border);
+    }
+    .member-table tbody tr:last-child td { border-bottom: none; }
+
+    .member-cell { display: flex; align-items: center; gap: var(--s3); }
+    .member-mini-avatar {
+      width: 28px; height: 28px; border-radius: var(--r-full);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 600; flex-shrink: 0;
+      color: var(--primary-foreground);
+    }
+    .member-name-col { display: flex; flex-direction: column; }
+    .member-name-text { font-size: 13px; font-weight: 500; color: var(--foreground); line-height: 1.3; }
+    .member-dept-text { font-size: 11px; color: var(--muted-foreground); }
+
+    /* 역할 배지 */
+    .role-badge {
+      display: inline-flex; align-items: center; padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; border-radius: var(--r1);
+    }
+    .role-admin { background: var(--accent); color: var(--accent-foreground); }
+    .role-regular { background: rgba(23,162,184,0.12); color: #17A2B8; }
+    .dark .role-regular { background: rgba(23,162,184,0.2); color: #5bc0de; }
+    .role-associate { background: rgba(255,193,7,0.12); color: #d39e00; }
+    .dark .role-associate { background: rgba(255,193,7,0.2); color: #FFC107; }
+
+    /* 상태 배지 */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: var(--s1); padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; border-radius: var(--r-full);
+    }
+    .status-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: var(--r-full);
+    }
+    .status-active { color: #28A745; }
+    .status-active::before { background: #28A745; }
+    .status-dormant { color: #FFC107; }
+    .status-dormant::before { background: #FFC107; }
+    .status-pending { color: #17A2B8; }
+    .status-pending::before { background: #17A2B8; }
+    .status-suspended { color: #DC3545; }
+    .status-suspended::before { background: #DC3545; }
+
+    /* 테이블 푸터 */
+    .table-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--s3) var(--s4); border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--muted-foreground); margin-top: auto;
+    }
+    .table-pagination { display: flex; align-items: center; gap: var(--s2); }
+    .page-btn {
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: var(--r2); background: var(--card);
+      color: var(--foreground); cursor: pointer; font-size: 12px; font-weight: 500;
+      font-family: 'Inter', sans-serif; transition: all 0.2s;
+    }
+    .page-btn:hover { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+    .page-btn.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+
+    /* ===== 구분선 (테이블 | 상세) ===== */
+    .divider-line {
+      width: 1px; background: var(--border); flex-shrink: 0;
+    }
+
+    /* ===== 우측 상세 패널 (35%) ===== */
+    .detail-area {
+      flex: 35; display: flex; flex-direction: column; min-width: 0;
+      overflow-y: auto;
+    }
+    .detail-area.slide-in { animation: slideIn 0.3s ease forwards; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* 상세 상단: 미니 도넛 + 프로필 */
+    .detail-profile {
+      padding: var(--s4); display: flex; align-items: flex-start; gap: var(--s4);
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-avatar-wrap { position: relative; flex-shrink: 0; }
+    .detail-avatar {
+      width: 48px; height: 48px; border-radius: var(--r-full);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: var(--primary-foreground);
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+    }
+    .dark .detail-avatar {
+      background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5));
+    }
+    .detail-profile-info { flex: 1; min-width: 0; }
+    .detail-name { font-size: 16px; font-weight: 700; color: var(--foreground); line-height: 1.3; }
+    .detail-meta { display: flex; align-items: center; gap: var(--s2); margin-top: 2px; flex-wrap: wrap; }
+    .detail-role-badge {
+      display: inline-flex; align-items: center; padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; border-radius: var(--r1);
+    }
+    .detail-status-text { font-size: 12px; color: var(--muted-foreground); }
+
+    /* 미니 도넛 차트 */
+    .mini-donut-wrap {
+      flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: var(--s1);
+    }
+    .mini-donut-label { font-size: 10px; font-weight: 500; color: var(--muted-foreground); }
+    .mini-donut { width: 72px; height: 72px; }
+
+    /* 상세 정보 그리드 */
+    .detail-body { padding: var(--s3) var(--s4); flex: 1; overflow-y: auto; }
+    .detail-section-label {
+      font-size: 10px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--s2);
+    }
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2);
+      margin-bottom: var(--s3);
+    }
+    .info-item { padding: var(--s2) var(--s3); background: var(--secondary); border-radius: var(--r2); }
+    .info-label { font-size: 10px; font-weight: 500; color: var(--muted-foreground); margin-bottom: 1px; }
+    .info-value { font-size: 12px; font-weight: 600; color: var(--foreground); }
+    .info-item.full-width { grid-column: 1 / -1; }
+
+    /* 타임라인 */
+    .timeline { margin-bottom: var(--s3); }
+    .timeline-item {
+      display: flex; gap: var(--s2); padding: var(--s2) 0; position: relative;
+    }
+    .timeline-item:not(:last-child)::after {
+      content: ''; position: absolute; left: 10px; top: 24px; bottom: -4px;
+      width: 2px; background: var(--border);
+    }
+    .timeline-dot {
+      width: 20px; height: 20px; border-radius: var(--r-full); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+    }
+    .timeline-dot.post { background: rgba(23,162,184,0.12); color: #17A2B8; }
+    .timeline-dot.attend { background: rgba(40,167,69,0.12); color: #28A745; }
+    .timeline-dot.study { background: rgba(255,193,7,0.12); color: #d39e00; }
+    .dark .timeline-dot.post { background: rgba(23,162,184,0.2); color: #5bc0de; }
+    .dark .timeline-dot.attend { background: rgba(40,167,69,0.2); color: #5cb85c; }
+    .dark .timeline-dot.study { background: rgba(255,193,7,0.2); color: #FFC107; }
+    .timeline-content { flex: 1; min-width: 0; }
+    .timeline-text { font-size: 12px; font-weight: 500; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .timeline-date { font-size: 10px; color: var(--muted-foreground); }
+
+    /* 상세 하단 액션 */
+    .detail-actions {
+      display: flex; gap: var(--s2); padding: var(--s3) var(--s4);
+      border-top: 1px solid var(--border); margin-top: auto;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--s1);
+      padding: var(--s2) var(--s3); font-size: 12px; font-weight: 600;
+      border-radius: var(--r2); cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif; border: none;
+    }
+    .btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+    .btn-primary:hover { filter: brightness(0.9); }
+    .btn-outline {
+      background: transparent; color: var(--foreground);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+    .btn-destructive { background: var(--destructive); color: #fff; }
+    .btn-destructive:hover { filter: brightness(0.9); }
+    .btn-ghost {
+      background: transparent; color: var(--muted-foreground);
+      border: none;
+    }
+    .btn-ghost:hover { background: var(--muted); color: var(--foreground); }
+
+    /* 빈 상세 패널 */
+    .detail-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--muted-foreground); gap: var(--s3); padding: var(--s7);
+    }
+    .detail-empty-icon { opacity: 0.2; }
+    .detail-empty-text { font-size: 13px; font-weight: 500; text-align: center; }
+
+    /* ===== 모바일 오버레이 ===== */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 49; opacity: 0; transition: opacity 0.3s;
+    }
+    .sidebar-overlay.show { display: block; opacity: 1; }
+
+    /* 모바일 상세 모달 */
+    .detail-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 60; align-items: flex-end; justify-content: center;
+    }
+    .detail-modal-overlay.show { display: flex; }
+    .detail-modal {
+      background: var(--card); border-radius: var(--r4) var(--r4) 0 0;
+      width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
+      animation: slideUp 0.35s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .detail-modal-handle {
+      width: 40px; height: 4px; background: var(--gray-4); border-radius: var(--r-full);
+      margin: var(--s3) auto var(--s2);
+    }
+    .detail-modal-close {
+      position: absolute; top: var(--s3); right: var(--s3);
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      background: var(--secondary); border: none; border-radius: var(--r-full);
+      cursor: pointer; color: var(--foreground); z-index: 2;
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 1199px) {
+      .master-detail { flex-direction: column; }
+      .detail-area { display: none; }
+      .divider-line { display: none; }
+      .detail-area.mobile-visible { display: flex; }
+    }
+    @media (max-width: 991px) {
+      .sidebar { position: fixed; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .hamburger { display: flex; }
+      .inline-stats { gap: var(--s3); }
+      .inline-stat-value { font-size: 16px; }
+    }
+    @media (max-width: 767px) {
+      .content { padding: var(--s3); }
+      .page-header-row { flex-direction: column; gap: var(--s2); }
+      .page-header-title { font-size: 18px; }
+      .inline-stats { gap: var(--s3); }
+      .inline-stat-value { font-size: 16px; }
+      .chart-header { height: 80px; }
+      .search-overlay { flex-direction: column; gap: var(--s2); }
+      .tab-filters { overflow-x: auto; }
+      .info-grid { grid-template-columns: 1fr; }
+      .detail-actions { flex-wrap: wrap; }
+      .detail-profile { flex-direction: column; align-items: center; text-align: center; }
+      .detail-meta { justify-content: center; }
+    }
+    @media (max-width: 575px) {
+      .search-box { min-width: 100%; }
+      .member-table thead th:nth-child(3),
+      .member-table tbody td:nth-child(3) { display: none; }
+      .inline-stat-label { font-size: 10px; }
+    }
+
+    /* ===== prefers-reduced-motion ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 사이드바 오버레이 (모바일) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- 사이드바 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="sidebar-logo-text">
+            <span class="sidebar-logo-title">IGRUS</span>
+            <span class="sidebar-logo-sub">Admin Console</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-label">Management</div>
+        <button class="nav-item" onclick="location.hash='dashboard'">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          대시보드
+        </button>
+        <button class="nav-item active">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          회원관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+          게시판관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          행사관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          문의관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+          설문관리
+        </button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" onclick="toggleTheme()">
+          <span class="nav-icon" id="themeIconSidebar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </span>
+          테마 변경
+        </button>
+      </div>
+    </aside>
+
+    <!-- 메인 영역 -->
+    <div class="main-area">
+      <!-- 헤더 -->
+      <header class="header">
+        <div class="header-left">
+          <button class="hamburger" onclick="toggleSidebar()" aria-label="메뉴 열기">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span class="page-title">회원관리</span>
+        </div>
+        <div class="header-right">
+          <button class="theme-toggle" onclick="toggleTheme()" aria-label="테마 변경" id="themeToggle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="themeIconHeader"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+          <div class="admin-info">
+            <div class="admin-avatar">JY</div>
+            <span class="admin-name">김준영</span>
+            <span class="admin-role-badge">관리자</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 콘텐츠 -->
+      <main class="content">
+        <!-- 인라인 헤더: 제목 + 수치를 한 줄에 -->
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <span class="page-header-label">Members</span>
+            <h1 class="page-header-title">회원관리</h1>
+          </div>
+          <div class="inline-stats">
+            <div class="inline-stat total">
+              <span class="inline-stat-value">52</span>
+              <span class="inline-stat-label">전체</span>
+            </div>
+            <div class="inline-stat active">
+              <span class="inline-stat-value">45</span>
+              <span class="inline-stat-label">활동</span>
+            </div>
+            <div class="inline-stat dormant">
+              <span class="inline-stat-value">5</span>
+              <span class="inline-stat-label">휴면</span>
+            </div>
+            <div class="inline-stat pending">
+              <span class="inline-stat-value">3</span>
+              <span class="inline-stat-label">대기</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 하나의 워크스페이스 -->
+        <div class="workspace">
+          <!-- 차트 헤더: 얇은 영역 차트 배경 + 검색 오버레이 -->
+          <div class="chart-header">
+            <canvas id="trendChart"></canvas>
+            <div class="search-overlay">
+              <div class="search-box">
+                <span class="search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                <input type="text" placeholder="이름, 학번, 학과로 검색..." />
+              </div>
+              <div class="tab-filters">
+                <button class="tab-filter active" onclick="setFilter(this)">전체<span class="tab-count">52</span></button>
+                <button class="tab-filter" onclick="setFilter(this)">활동<span class="tab-count">45</span></button>
+                <button class="tab-filter" onclick="setFilter(this)">휴면<span class="tab-count">5</span></button>
+                <button class="tab-filter" onclick="setFilter(this)">대기<span class="tab-count">3</span></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 마스터-디테일 -->
+          <div class="master-detail">
+            <!-- 좌측: 테이블 -->
+            <div class="table-area">
+              <div style="overflow-x: auto; flex: 1;">
+                <table class="member-table">
+                  <thead>
+                    <tr>
+                      <th>회원</th>
+                      <th>역할</th>
+                      <th>상태</th>
+                      <th style="text-align:right;">가입일</th>
+                    </tr>
+                  </thead>
+                  <tbody id="memberTableBody">
+                    <tr class="selected" onclick="selectMember(0)" data-idx="0">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));">JY</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">김준영</span>
+                            <span class="member-dept-text">컴퓨터공학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-admin">관리자</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2021-03-15</td>
+                    </tr>
+                    <tr onclick="selectMember(1)" data-idx="1">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #17A2B8, #138496);">JH</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">이지훈</span>
+                            <span class="member-dept-text">소프트웨어학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-regular">정회원</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2022-03-10</td>
+                    </tr>
+                    <tr onclick="selectMember(2)" data-idx="2">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #FFC107, #e0a800);">SY</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">박서연</span>
+                            <span class="member-dept-text">정보통신공학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-associate">준회원</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2023-09-01</td>
+                    </tr>
+                    <tr onclick="selectMember(3)" data-idx="3">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #17A2B8, #138496);">MS</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">최민수</span>
+                            <span class="member-dept-text">전자공학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-regular">정회원</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2021-09-05</td>
+                    </tr>
+                    <tr onclick="selectMember(4)" data-idx="4">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #FFC107, #e0a800);">YJ</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">한유진</span>
+                            <span class="member-dept-text">컴퓨터공학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-associate">준회원</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2024-03-12</td>
+                    </tr>
+                    <tr onclick="selectMember(5)" data-idx="5">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #17A2B8, #138496);">DH</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">김도현</span>
+                            <span class="member-dept-text">컴퓨터공학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-regular">정회원</span></td>
+                      <td><span class="status-badge status-dormant">휴면</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2020-03-20</td>
+                    </tr>
+                    <tr onclick="selectMember(6)" data-idx="6">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #17A2B8, #138496);">HE</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">정하은</span>
+                            <span class="member-dept-text">AI융합학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-regular">정회원</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2022-09-01</td>
+                    </tr>
+                    <tr onclick="selectMember(7)" data-idx="7">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #FFC107, #e0a800);">SB</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">오수빈</span>
+                            <span class="member-dept-text">데이터사이언스학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-associate">준회원</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2024-09-01</td>
+                    </tr>
+                    <tr onclick="selectMember(8)" data-idx="8">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #FFC107, #e0a800);">JH</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">윤재현</span>
+                            <span class="member-dept-text">소프트웨어학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-associate">준회원</span></td>
+                      <td><span class="status-badge status-active">활동</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2024-09-05</td>
+                    </tr>
+                    <tr onclick="selectMember(9)" data-idx="9">
+                      <td>
+                        <div class="member-cell">
+                          <div class="member-mini-avatar" style="background: linear-gradient(135deg, #17A2B8, #138496);">YR</div>
+                          <div class="member-name-col">
+                            <span class="member-name-text">송예린</span>
+                            <span class="member-dept-text">정보통신공학과</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge role-regular">정회원</span></td>
+                      <td><span class="status-badge status-suspended">정지</span></td>
+                      <td style="text-align:right; font-size:12px; color:var(--muted-foreground);">2021-03-20</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-footer">
+                <span>10명 중 1-10 표시</span>
+                <div class="table-pagination">
+                  <button class="page-btn" aria-label="이전 페이지">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <button class="page-btn active">1</button>
+                  <button class="page-btn">2</button>
+                  <button class="page-btn">3</button>
+                  <button class="page-btn" aria-label="다음 페이지">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 구분선 -->
+            <div class="divider-line"></div>
+
+            <!-- 우측: 상세 패널 -->
+            <div class="detail-area slide-in" id="detailPanel">
+              <!-- 프로필 + 미니 도넛 -->
+              <div class="detail-profile">
+                <div class="detail-avatar-wrap">
+                  <div class="detail-avatar" id="detailAvatar">JY</div>
+                </div>
+                <div class="detail-profile-info">
+                  <div class="detail-name" id="detailName">김준영</div>
+                  <div class="detail-meta">
+                    <span class="detail-role-badge role-admin" id="detailRoleBadge">관리자</span>
+                    <span class="detail-status-text" id="detailStatusText">
+                      <span class="status-badge status-active">활동</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="mini-donut-wrap">
+                  <canvas class="mini-donut" id="donutChart"></canvas>
+                  <span class="mini-donut-label">역할 분포</span>
+                </div>
+              </div>
+
+              <!-- 상세 정보 -->
+              <div class="detail-body">
+                <div class="detail-section-label">Information</div>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <div class="info-label">학번</div>
+                    <div class="info-value" id="detailStudentId">20210001</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">학과</div>
+                    <div class="info-value" id="detailDept">컴퓨터공학과</div>
+                  </div>
+                  <div class="info-item full-width">
+                    <div class="info-label">이메일</div>
+                    <div class="info-value" id="detailEmail">junyoung.kim@example.com</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">가입일</div>
+                    <div class="info-value" id="detailJoinDate">2021-03-15</div>
+                  </div>
+                </div>
+
+                <div class="detail-section-label">Recent Activity</div>
+                <div class="timeline" id="detailTimeline">
+                  <div class="timeline-item">
+                    <div class="timeline-dot post">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-text">게시글 작성 — "스프링부트 스터디 모집"</div>
+                      <div class="timeline-date">2026-03-07</div>
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <div class="timeline-dot attend">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-text">출석 체크 — 정기 모임</div>
+                      <div class="timeline-date">2026-03-05</div>
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <div class="timeline-dot study">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-text">스터디 참여 — 알고리즘 스터디</div>
+                      <div class="timeline-date">2026-03-03</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 하단 액션 -->
+              <div class="detail-actions">
+                <button class="btn btn-primary">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  역할 변경
+                </button>
+                <button class="btn btn-outline">상태 변경</button>
+                <button class="btn btn-destructive" style="margin-left: auto;">삭제</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 모바일 상세 모달 -->
+  <div class="detail-modal-overlay" id="mobileModal">
+    <div class="detail-modal" id="mobileModalContent">
+      <div class="detail-modal-handle"></div>
+      <button class="detail-modal-close" onclick="closeMobileModal()" aria-label="닫기">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div id="mobileDetailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== 회원 데이터 ===== */
+    const members = [
+      { name: '김준영', initials: 'JY', dept: '컴퓨터공학과', role: '관리자', roleClass: 'role-admin', status: '활동', statusClass: 'status-active', studentId: '20210001', email: 'junyoung.kim@example.com', joinDate: '2021-03-15', avatarGrad: 'linear-gradient(135deg, var(--brand-l4), var(--brand-l6))', activity: [
+        { type: 'post', text: '게시글 작성 — "스프링부트 스터디 모집"', date: '2026-03-07' },
+        { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+        { type: 'study', text: '스터디 참여 — 알고리즘 스터디', date: '2026-03-03' }
+      ]},
+      { name: '이지훈', initials: 'JH', dept: '소프트웨어학과', role: '정회원', roleClass: 'role-regular', status: '활동', statusClass: 'status-active', studentId: '20220015', email: 'jihoon.lee@example.com', joinDate: '2022-03-10', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', activity: [
+        { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+        { type: 'study', text: '스터디 참여 — 웹개발 스터디', date: '2026-03-02' },
+        { type: 'post', text: '게시글 작성 — "React 팁 공유"', date: '2026-02-28' }
+      ]},
+      { name: '박서연', initials: 'SY', dept: '정보통신공학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20230042', email: 'seoyeon.park@example.com', joinDate: '2023-09-01', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', activity: [
+        { type: 'study', text: '스터디 참여 — Python 기초', date: '2026-03-06' },
+        { type: 'attend', text: '출석 체크 — OT', date: '2026-03-01' },
+        { type: 'post', text: '게시글 작성 — "자기소개"', date: '2026-02-25' }
+      ]},
+      { name: '최민수', initials: 'MS', dept: '전자공학과', role: '정회원', roleClass: 'role-regular', status: '활동', statusClass: 'status-active', studentId: '20210089', email: 'minsoo.choi@example.com', joinDate: '2021-09-05', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', activity: [
+        { type: 'post', text: '게시글 작성 — "임베디드 프로젝트 후기"', date: '2026-03-04' },
+        { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+        { type: 'study', text: '스터디 참여 — 임베디드 스터디', date: '2026-02-27' }
+      ]},
+      { name: '한유진', initials: 'YJ', dept: '컴퓨터공학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20240003', email: 'yujin.han@example.com', joinDate: '2024-03-12', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', activity: [
+        { type: 'attend', text: '출석 체크 — OT', date: '2026-03-01' },
+        { type: 'study', text: '스터디 참여 — 알고리즘 스터디', date: '2026-02-28' },
+        { type: 'post', text: '게시글 작성 — "가입 인사"', date: '2026-02-25' }
+      ]},
+      { name: '김도현', initials: 'DH', dept: '컴퓨터공학과', role: '정회원', roleClass: 'role-regular', status: '휴면', statusClass: 'status-dormant', studentId: '20200055', email: 'dohyeon.kim@example.com', joinDate: '2020-03-20', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', activity: [
+        { type: 'attend', text: '출석 체크 — 정기 모임', date: '2025-11-15' },
+        { type: 'post', text: '게시글 작성 — "졸업 프로젝트 질문"', date: '2025-10-20' },
+        { type: 'study', text: '스터디 참여 — DB 스터디', date: '2025-09-30' }
+      ]},
+      { name: '정하은', initials: 'HE', dept: 'AI융합학과', role: '정회원', roleClass: 'role-regular', status: '활동', statusClass: 'status-active', studentId: '20220078', email: 'haeun.jung@example.com', joinDate: '2022-09-01', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', activity: [
+        { type: 'study', text: '스터디 참여 — ML 스터디', date: '2026-03-06' },
+        { type: 'post', text: '게시글 작성 — "딥러닝 논문 리뷰"', date: '2026-03-03' },
+        { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' }
+      ]},
+      { name: '오수빈', initials: 'SB', dept: '데이터사이언스학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20240021', email: 'subin.oh@example.com', joinDate: '2024-09-01', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', activity: [
+        { type: 'attend', text: '출석 체크 — OT', date: '2026-03-01' },
+        { type: 'post', text: '게시글 작성 — "자기소개"', date: '2026-02-28' },
+        { type: 'study', text: '스터디 참여 — 데이터분석 스터디', date: '2026-02-26' }
+      ]},
+      { name: '윤재현', initials: 'JH', dept: '소프트웨어학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20240055', email: 'jaehyun.yoon@example.com', joinDate: '2024-09-05', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', activity: [
+        { type: 'study', text: '스터디 참여 — 웹개발 스터디', date: '2026-03-04' },
+        { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+        { type: 'post', text: '게시글 작성 — "CSS 꿀팁"', date: '2026-02-27' }
+      ]},
+      { name: '송예린', initials: 'YR', dept: '정보통신공학과', role: '정회원', roleClass: 'role-regular', status: '정지', statusClass: 'status-suspended', studentId: '20210034', email: 'yerin.song@example.com', joinDate: '2021-03-20', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', activity: [
+        { type: 'post', text: '게시글 작성 — "규정 위반 게시글"', date: '2026-02-15' },
+        { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-02-10' },
+        { type: 'study', text: '스터디 참여 — 네트워크 스터디', date: '2026-01-28' }
+      ]}
+    ];
+
+    let selectedIdx = 0;
+
+    const timelineIcons = {
+      post: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+      attend: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+      study: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
+    };
+
+    /* ===== 멤버 선택 ===== */
+    function selectMember(idx) {
+      selectedIdx = idx;
+      const m = members[idx];
+
+      document.querySelectorAll('#memberTableBody tr').forEach((tr, i) => {
+        tr.classList.toggle('selected', i === idx);
+      });
+
+      const panel = document.getElementById('detailPanel');
+      document.getElementById('detailAvatar').textContent = m.initials;
+      document.getElementById('detailAvatar').style.background = m.avatarGrad;
+      document.getElementById('detailName').textContent = m.name;
+      const roleBadge = document.getElementById('detailRoleBadge');
+      roleBadge.textContent = m.role;
+      roleBadge.className = 'detail-role-badge ' + m.roleClass;
+      document.getElementById('detailStatusText').innerHTML = '<span class="status-badge ' + m.statusClass + '">' + m.status + '</span>';
+      document.getElementById('detailStudentId').textContent = m.studentId;
+      document.getElementById('detailDept').textContent = m.dept;
+      document.getElementById('detailEmail').textContent = m.email;
+      document.getElementById('detailJoinDate').textContent = m.joinDate;
+
+      const tl = document.getElementById('detailTimeline');
+      tl.innerHTML = m.activity.map(a =>
+        '<div class="timeline-item">' +
+          '<div class="timeline-dot ' + a.type + '">' + timelineIcons[a.type] + '</div>' +
+          '<div class="timeline-content">' +
+            '<div class="timeline-text">' + a.text + '</div>' +
+            '<div class="timeline-date">' + a.date + '</div>' +
+          '</div>' +
+        '</div>'
+      ).join('');
+
+      panel.classList.remove('slide-in');
+      void panel.offsetWidth;
+      panel.classList.add('slide-in');
+
+      if (window.innerWidth < 1200) {
+        showMobileModal(m);
+      }
+    }
+
+    /* ===== 모바일 모달 ===== */
+    function showMobileModal(m) {
+      const overlay = document.getElementById('mobileModal');
+      const content = document.getElementById('mobileDetailContent');
+      content.innerHTML =
+        '<div class="detail-profile" style="border-bottom:1px solid var(--border);">' +
+          '<div class="detail-avatar-wrap"><div class="detail-avatar" style="background:' + m.avatarGrad + ';">' + m.initials + '</div></div>' +
+          '<div class="detail-profile-info">' +
+            '<div class="detail-name">' + m.name + '</div>' +
+            '<div class="detail-meta"><span class="detail-role-badge ' + m.roleClass + '">' + m.role + '</span><span class="status-badge ' + m.statusClass + '">' + m.status + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="detail-body">' +
+          '<div class="detail-section-label">Information</div>' +
+          '<div class="info-grid">' +
+            '<div class="info-item"><div class="info-label">학번</div><div class="info-value">' + m.studentId + '</div></div>' +
+            '<div class="info-item"><div class="info-label">학과</div><div class="info-value">' + m.dept + '</div></div>' +
+            '<div class="info-item full-width"><div class="info-label">이메일</div><div class="info-value">' + m.email + '</div></div>' +
+            '<div class="info-item"><div class="info-label">가입일</div><div class="info-value">' + m.joinDate + '</div></div>' +
+          '</div>' +
+          '<div class="detail-section-label">Recent Activity</div>' +
+          '<div class="timeline">' +
+            m.activity.map(a =>
+              '<div class="timeline-item">' +
+                '<div class="timeline-dot ' + a.type + '">' + timelineIcons[a.type] + '</div>' +
+                '<div class="timeline-content">' +
+                  '<div class="timeline-text">' + a.text + '</div>' +
+                  '<div class="timeline-date">' + a.date + '</div>' +
+                '</div>' +
+              '</div>'
+            ).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="detail-actions">' +
+          '<button class="btn btn-primary">역할 변경</button>' +
+          '<button class="btn btn-outline">상태 변경</button>' +
+          '<button class="btn btn-destructive" style="margin-left:auto;">삭제</button>' +
+        '</div>';
+      overlay.classList.add('show');
+    }
+
+    function closeMobileModal() {
+      document.getElementById('mobileModal').classList.remove('show');
+    }
+
+    /* ===== 탭 필터 ===== */
+    function setFilter(btn) {
+      document.querySelectorAll('.tab-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    /* ===== 사이드바 토글 ===== */
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+
+    /* ===== 다크모드 토글 ===== */
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      const sunIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+      const moonIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      document.getElementById('themeIconHeader').outerHTML = isDark
+        ? moonIcon.replace('<svg', '<svg id="themeIconHeader"')
+        : sunIcon.replace('<svg', '<svg id="themeIconHeader"');
+      document.getElementById('themeIconSidebar').innerHTML = isDark ? moonIcon : sunIcon;
+      // 차트 다시 그리기
+      drawTrendChart();
+      drawDonutChart();
+    }
+
+    /* ===== 영역 차트 (최근 14일 가입 추이) ===== */
+    function drawTrendChart() {
+      const canvas = document.getElementById('trendChart');
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const isDark = document.documentElement.classList.contains('dark');
+
+      // 더미 데이터: 14일간 가입 수
+      const data = [1, 0, 2, 1, 3, 2, 1, 4, 2, 3, 1, 2, 5, 3];
+      const max = Math.max(...data) + 1;
+      const padY = 12;
+      const padX = 0;
+
+      const points = data.map((v, i) => ({
+        x: padX + (i / (data.length - 1)) * (w - padX * 2),
+        y: h - padY - (v / max) * (h - padY * 2)
+      }));
+
+      // 곡선 보간
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const cpx = (prev.x + curr.x) / 2;
+        ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+      }
+
+      // 그라데이션 채우기
+      const lineClone = new Path2D();
+      lineClone.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const cpx = (prev.x + curr.x) / 2;
+        lineClone.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+      }
+      lineClone.lineTo(w, h);
+      lineClone.lineTo(0, h);
+      lineClone.closePath();
+
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      if (isDark) {
+        grad.addColorStop(0, 'rgba(102, 203, 197, 0.25)');
+        grad.addColorStop(1, 'rgba(102, 203, 197, 0.02)');
+      } else {
+        grad.addColorStop(0, 'rgba(3, 166, 158, 0.18)');
+        grad.addColorStop(1, 'rgba(3, 166, 158, 0.02)');
+      }
+      ctx.fillStyle = grad;
+      ctx.fill(lineClone);
+
+      // 선
+      ctx.strokeStyle = isDark ? 'rgba(102, 203, 197, 0.6)' : 'rgba(3, 166, 158, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // 마커 (최대값에만)
+      const maxIdx = data.indexOf(Math.max(...data));
+      ctx.beginPath();
+      ctx.arc(points[maxIdx].x, points[maxIdx].y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = isDark ? '#66CBC5' : '#03A69E';
+      ctx.fill();
+      ctx.strokeStyle = isDark ? 'rgba(102,203,197,0.3)' : 'rgba(3,166,158,0.3)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // 날짜 라벨 (처음, 중간, 끝)
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillStyle = isDark ? 'rgba(173,181,189,0.5)' : 'rgba(108,117,125,0.5)';
+      ctx.textAlign = 'left';
+      ctx.fillText('2/23', padX + 2, h - 2);
+      ctx.textAlign = 'center';
+      ctx.fillText('3/1', w / 2, h - 2);
+      ctx.textAlign = 'right';
+      ctx.fillText('3/8', w - 2, h - 2);
+    }
+
+    /* ===== 미니 도넛 차트 (역할 비율) ===== */
+    function drawDonutChart() {
+      const canvas = document.getElementById('donutChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const r = Math.min(cx, cy) - 4;
+      const innerR = r * 0.6;
+      const isDark = document.documentElement.classList.contains('dark');
+
+      // 관리자 1, 정회원 5, 준회원 4
+      const segments = [
+        { value: 1, color: isDark ? '#66CBC5' : '#03A69E' },
+        { value: 5, color: isDark ? '#5bc0de' : '#17A2B8' },
+        { value: 4, color: isDark ? '#FFC107' : '#d39e00' }
+      ];
+      const total = segments.reduce((s, seg) => s + seg.value, 0);
+      let angle = -Math.PI / 2;
+
+      segments.forEach(seg => {
+        const sweep = (seg.value / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, angle, angle + sweep);
+        ctx.arc(cx, cy, innerR, angle + sweep, angle, true);
+        ctx.closePath();
+        ctx.fillStyle = seg.color;
+        ctx.fill();
+        angle += sweep;
+      });
+
+      // 중앙 텍스트
+      ctx.fillStyle = isDark ? '#F8F9FA' : '#212529';
+      ctx.font = '600 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('10', cx, cy);
+    }
+
+    /* ===== 초기화 ===== */
+    window.addEventListener('DOMContentLoaded', () => {
+      drawTrendChart();
+      drawDonutChart();
+    });
+    window.addEventListener('resize', () => {
+      drawTrendChart();
+      drawDonutChart();
+    });
+
+    /* ESC로 모달 닫기 */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMobileModal();
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>

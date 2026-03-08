@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS Admin — 회원관리 (Design E)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <style>
+    body { min-height: 100vh; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: var(--background); }
+    ::-webkit-scrollbar-thumb { background: rgba(3,166,158,0.5); border-radius: var(--r-full); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(3,166,158,0.7); }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(102,203,197,0.5); }
+    .dark ::-webkit-scrollbar-thumb:hover { background: rgba(102,203,197,0.7); }
+    html { scrollbar-width: thin; scrollbar-color: rgba(3,166,158,0.5) var(--background); }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ===== 사이드바 ===== */
+    .sidebar {
+      width: 256px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+      background: var(--card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease;
+    }
+    .sidebar-header { padding: var(--s5) var(--s5) var(--s4); border-bottom: 1px solid var(--border); }
+    .sidebar-logo { display: flex; align-items: center; gap: var(--s3); }
+    .sidebar-logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      border-radius: var(--r2); display: flex; align-items: center; justify-content: center;
+      color: var(--primary-foreground);
+    }
+    .dark .sidebar-logo-icon { background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5)); }
+    .sidebar-logo-text { display: flex; flex-direction: column; }
+    .sidebar-logo-title { font-size: 16px; font-weight: 700; color: var(--foreground); letter-spacing: -0.01em; line-height: 1.2; }
+    .sidebar-logo-sub { font-size: 11px; font-weight: 500; color: var(--muted-foreground); }
+    .sidebar-nav { display: flex; flex-direction: column; gap: var(--s1); flex: 1; padding: var(--s4) var(--s3); }
+    .sidebar-nav-label {
+      font-size: 11px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: 0.05em; padding: var(--s2) var(--s3); margin-top: var(--s2);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4);
+      border-radius: var(--r2); font-size: 14px; font-weight: 500; color: var(--muted-foreground);
+      cursor: pointer; transition: all 0.2s; position: relative; border: none; background: none;
+      width: 100%; text-align: left; font-family: 'Inter', sans-serif;
+    }
+    .nav-item:hover { background: var(--accent); color: var(--accent-foreground); }
+    .nav-item.active { background: var(--accent); color: var(--accent-foreground); font-weight: 600; }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: var(--s2); bottom: var(--s2);
+      width: 4px; background: var(--primary); border-radius: var(--r1);
+    }
+    .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-bottom { display: flex; flex-direction: column; gap: var(--s1); padding: var(--s4) var(--s3); border-top: 1px solid var(--border); }
+    .sidebar-bottom .nav-item { font-size: 13px; }
+
+    /* ===== 메인 영역 ===== */
+    .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--background); }
+
+    /* ===== 헤더 ===== */
+    .header {
+      height: 64px; border-bottom: 1px solid var(--border); display: flex; align-items: center;
+      justify-content: space-between; padding: 0 var(--s5); background: var(--card);
+      position: sticky; top: 0; z-index: 40;
+    }
+    .header-left { display: flex; align-items: center; gap: var(--s4); }
+    .hamburger {
+      display: none; width: 40px; height: 40px; align-items: center; justify-content: center;
+      background: none; border: 1px solid var(--border); border-radius: var(--r2);
+      cursor: pointer; color: var(--foreground); padding: 0;
+    }
+    .page-title { font-size: 18px; font-weight: 600; color: var(--foreground); }
+    .header-right { display: flex; align-items: center; gap: var(--s4); }
+    .admin-info { display: flex; align-items: center; gap: var(--s3); }
+    .admin-avatar {
+      width: 32px; height: 32px; border-radius: var(--r-full);
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary-foreground); font-size: 13px; font-weight: 600;
+    }
+    .dark .admin-avatar { background: linear-gradient(135deg, var(--brand-l3), var(--brand-l5)); }
+    .admin-name { font-size: 14px; font-weight: 500; color: var(--foreground); }
+    .admin-role-badge {
+      display: inline-flex; align-items: center; padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; background: var(--accent);
+      color: var(--accent-foreground); border-radius: var(--r1);
+    }
+    .theme-toggle {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      background: var(--secondary); border: 1px solid var(--border); border-radius: var(--r2);
+      cursor: pointer; color: var(--foreground); transition: all 0.2s; padding: 0;
+    }
+    .theme-toggle:hover { background: var(--accent); color: var(--accent-foreground); }
+
+    /* ===== 콘텐츠 영역 ===== */
+    .content { flex: 1; padding: 0; max-width: 1280px; width: 100%; margin: 0 auto; }
+
+    /* ===== 1단계: Stat 카드 행 ===== */
+    .stats-section { padding: var(--s5) var(--s5) 0; }
+    .stat-cards {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s4);
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--r3);
+      padding: var(--s4) var(--s5); position: relative; overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .dark .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .stat-card.teal::before { background: linear-gradient(90deg, var(--brand-l4), var(--brand-l3)); }
+    .stat-card.green::before { background: linear-gradient(90deg, #28A745, #5cb85c); }
+    .stat-card.yellow::before { background: linear-gradient(90deg, #FFC107, #ffdb4d); }
+    .stat-card.red::before { background: linear-gradient(90deg, #DC3545, #e8616e); }
+
+    .stat-card-inner {
+      display: flex; align-items: center; gap: var(--s4);
+    }
+    .stat-card-icon {
+      width: 40px; height: 40px; border-radius: var(--r-full);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .stat-card.teal .stat-card-icon { background: var(--accent); color: var(--accent-foreground); }
+    .stat-card.green .stat-card-icon { background: rgba(40,167,69,0.1); color: #28A745; }
+    .dark .stat-card.green .stat-card-icon { background: rgba(40,167,69,0.2); color: #5cb85c; }
+    .stat-card.yellow .stat-card-icon { background: rgba(255,193,7,0.1); color: #d39e00; }
+    .dark .stat-card.yellow .stat-card-icon { background: rgba(255,193,7,0.2); color: #FFC107; }
+    .stat-card.red .stat-card-icon { background: rgba(220,53,69,0.1); color: #DC3545; }
+    .dark .stat-card.red .stat-card-icon { background: rgba(220,53,69,0.2); color: #e8616e; }
+
+    .stat-card-body { flex: 1; min-width: 0; }
+    .stat-card-label {
+      font-size: 12px; font-weight: 500; color: var(--muted-foreground);
+      margin-bottom: 2px;
+    }
+    .stat-card-number {
+      font-size: 24px; font-weight: 700; color: var(--foreground); line-height: 1.2;
+    }
+    .stat-card-change {
+      display: inline-flex; align-items: center; gap: 2px;
+      font-size: 11px; font-weight: 600; padding: 1px var(--s2);
+      border-radius: var(--r1); margin-top: 2px;
+    }
+    .stat-card-change.up { background: rgba(40,167,69,0.1); color: #28A745; }
+    .dark .stat-card-change.up { background: rgba(40,167,69,0.2); color: #5cb85c; }
+    .stat-card-change.down { background: rgba(220,53,69,0.1); color: #DC3545; }
+    .dark .stat-card-change.down { background: rgba(220,53,69,0.2); color: #e8616e; }
+    .stat-card-change.neutral { background: rgba(23,162,184,0.1); color: #17A2B8; }
+    .dark .stat-card-change.neutral { background: rgba(23,162,184,0.2); color: #5bc0de; }
+
+    .stat-card-sparkline {
+      flex-shrink: 0; width: 48px; height: 24px;
+    }
+    .stat-card-sparkline svg { display: block; }
+
+    /* ===== 2단계: 차트 행 ===== */
+    .charts-section { padding: var(--s4) var(--s5) 0; }
+    .chart-row {
+      display: grid; grid-template-columns: 70% 30%; gap: var(--s4);
+    }
+    .chart-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--r3);
+      overflow: hidden; position: relative;
+    }
+    .chart-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--brand-l4), var(--brand-l3));
+    }
+    .chart-card-header {
+      padding: var(--s4) var(--s5); display: flex; align-items: baseline; gap: var(--s3);
+    }
+    .chart-card-eng {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted-foreground);
+    }
+    .chart-card-title {
+      font-size: 14px; font-weight: 600; color: var(--foreground);
+    }
+    .chart-card-body {
+      padding: 0 var(--s5) var(--s5);
+    }
+
+    /* 영역 차트 */
+    .area-chart-wrap { height: 160px; position: relative; }
+    .area-chart-svg { width: 100%; height: 100%; }
+    .area-grid-line { stroke: var(--border); stroke-width: 1; opacity: 0.5; }
+    .dark .area-grid-line { opacity: 0.3; }
+    .area-fill-light { fill: url(#areaFillLight); }
+    .area-line { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .area-marker { fill: var(--primary); stroke: var(--card); stroke-width: 2; }
+    .area-label-x {
+      font-size: 10px; fill: var(--muted-foreground); font-family: 'Inter', sans-serif; font-weight: 500;
+    }
+    .area-label-y {
+      font-size: 10px; fill: var(--muted-foreground); font-family: 'Inter', sans-serif; font-weight: 500;
+      text-anchor: end;
+    }
+
+    /* 분포 카드 (도넛 + 바) */
+    .dist-card-body {
+      padding: 0 var(--s5) var(--s5);
+      display: flex; flex-direction: column; gap: var(--s5);
+    }
+
+    /* 도넛 차트 (카드 스타일) */
+    .donut-section { display: flex; align-items: center; gap: var(--s4); }
+    .donut-svg { width: 100px; height: 100px; flex-shrink: 0; }
+    .donut-center-text {
+      font-size: 18px; font-weight: 700; fill: var(--foreground); font-family: 'Inter', sans-serif;
+    }
+    .donut-center-label {
+      font-size: 9px; font-weight: 500; fill: var(--muted-foreground); font-family: 'Inter', sans-serif;
+    }
+    .donut-legend { display: flex; flex-direction: column; gap: var(--s2); flex: 1; }
+    .donut-legend-item {
+      display: flex; align-items: center; gap: var(--s2);
+      font-size: 12px; color: var(--foreground); font-weight: 500;
+    }
+    .donut-legend-dot {
+      width: 8px; height: 8px; border-radius: var(--r-full); flex-shrink: 0;
+    }
+    .donut-legend-value { font-weight: 700; margin-left: auto; color: var(--foreground); }
+
+    /* 상태 분포 수평 바 (카드 스타일) */
+    .status-bar-section {}
+    .status-bar-label {
+      font-size: 11px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--s3);
+    }
+    .hbar-chart { width: 100%; display: flex; flex-direction: column; gap: var(--s3); }
+    .hbar-item { display: flex; flex-direction: column; gap: var(--s1); }
+    .hbar-header {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: var(--muted-foreground); font-weight: 500;
+    }
+    .hbar-value { font-weight: 700; color: var(--foreground); }
+    .hbar-track {
+      height: 8px; background: var(--secondary);
+      border-radius: var(--r-full); overflow: hidden;
+    }
+    .hbar-fill {
+      height: 100%; border-radius: var(--r-full);
+      transition: width 0.6s ease;
+    }
+
+    /* ===== 마스터-디테일 레이아웃 ===== */
+    .master-detail-section { padding: var(--s5); padding-top: var(--s5); }
+    .master-detail {
+      display: flex; gap: var(--s5); min-height: 520px;
+    }
+
+    /* 좌측: 테이블 패널 */
+    .table-panel {
+      flex: 62; background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r3); overflow: hidden; display: flex; flex-direction: column;
+    }
+    .table-toolbar {
+      display: flex; align-items: center; gap: var(--s3); padding: var(--s4) var(--s5);
+      border-bottom: 1px solid var(--border); flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1; min-width: 180px; display: flex; align-items: center; gap: var(--s2);
+      background: var(--secondary); border: 1px solid var(--border); border-radius: var(--r-full);
+      padding: var(--s2) var(--s4); transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3,166,158,0.12);
+    }
+    .search-box input {
+      flex: 1; border: none; background: transparent; outline: none;
+      font-size: 13px; font-family: 'Inter', sans-serif; color: var(--foreground);
+    }
+    .search-box input::placeholder { color: var(--muted-foreground); }
+    .search-icon { color: var(--muted-foreground); flex-shrink: 0; }
+    .filter-btn {
+      display: inline-flex; align-items: center; gap: var(--s1); padding: var(--s2) var(--s3);
+      font-size: 13px; font-weight: 500; background: var(--secondary); border: 1px solid var(--border);
+      border-radius: var(--r2); cursor: pointer; color: var(--secondary-foreground);
+      font-family: 'Inter', sans-serif; transition: all 0.2s;
+    }
+    .filter-btn:hover { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+    .filter-btn.active { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+
+    /* 테이블 */
+    .member-table { width: 100%; border-collapse: collapse; flex: 1; }
+    .member-table thead th {
+      text-align: left; padding: var(--s3) var(--s4); font-size: 11px; font-weight: 600;
+      color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border); background: var(--secondary);
+    }
+    .member-table tbody tr {
+      cursor: pointer; transition: all 0.15s;
+    }
+    .member-table tbody tr:hover { background: var(--muted); }
+    .member-table tbody tr.selected { background: var(--accent); }
+    .member-table tbody td {
+      padding: var(--s3) var(--s4); font-size: 14px; color: var(--foreground);
+      border-bottom: 1px solid var(--border); vertical-align: middle;
+    }
+    .member-table tbody tr:last-child td { border-bottom: none; }
+
+    .member-cell { display: flex; align-items: center; gap: var(--s3); }
+    .member-mini-avatar {
+      width: 32px; height: 32px; border-radius: var(--r-full);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; flex-shrink: 0;
+      color: var(--primary-foreground);
+    }
+    .member-name-col { display: flex; flex-direction: column; }
+    .member-name-text { font-size: 14px; font-weight: 500; color: var(--foreground); }
+    .member-dept-text { font-size: 12px; color: var(--muted-foreground); }
+
+    /* 역할 배지 */
+    .role-badge {
+      display: inline-flex; align-items: center; padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; border-radius: var(--r1);
+    }
+    .role-admin { background: rgba(220,53,69,0.1); color: #DC3545; }
+    .dark .role-admin { background: rgba(220,53,69,0.2); color: #e8616e; }
+    .role-regular { background: rgba(3,166,158,0.1); color: var(--brand-l4); }
+    .dark .role-regular { background: rgba(102,203,197,0.2); color: var(--brand-l3); }
+    .role-associate { background: rgba(23,162,184,0.12); color: #17A2B8; }
+    .dark .role-associate { background: rgba(23,162,184,0.2); color: #5bc0de; }
+
+    /* 상태 배지 */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: var(--s1); padding: 2px var(--s2);
+      font-size: 11px; font-weight: 600; border-radius: var(--r-full);
+    }
+    .status-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: var(--r-full);
+    }
+    .status-active { color: #28A745; }
+    .status-active::before { background: #28A745; }
+    .status-dormant { color: var(--gray-5); }
+    .status-dormant::before { background: var(--gray-4); }
+    .status-suspended { color: #DC3545; }
+    .status-suspended::before { background: #DC3545; }
+
+    /* 활동 dot matrix */
+    .activity-dots {
+      display: flex; gap: 3px; align-items: center;
+    }
+    .activity-dot {
+      width: 8px; height: 8px; border-radius: 2px;
+      transition: transform 0.15s;
+    }
+    .activity-dot:hover { transform: scale(1.4); }
+    .activity-dot.active-day { background: var(--primary); opacity: 0.85; }
+    .activity-dot.inactive-day { background: var(--border); opacity: 0.5; }
+    .dark .activity-dot.active-day { background: var(--brand-l3); }
+
+    /* 테이블 푸터 */
+    .table-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--s3) var(--s5); border-top: 1px solid var(--border);
+      font-size: 13px; color: var(--muted-foreground);
+    }
+    .table-footer-info { font-weight: 500; }
+    .table-pagination { display: flex; align-items: center; gap: var(--s2); }
+    .page-btn {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: var(--r2); background: var(--card);
+      color: var(--foreground); cursor: pointer; font-size: 13px; font-weight: 500;
+      font-family: 'Inter', sans-serif; transition: all 0.2s;
+    }
+    .page-btn:hover { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+    .page-btn.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+
+    /* ===== 우측: 상세 패널 ===== */
+    .detail-panel {
+      flex: 38; background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r3); overflow: hidden; display: flex; flex-direction: column;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .detail-panel.slide-in { animation: slideIn 0.35s ease forwards; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(16px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .detail-top {
+      background: linear-gradient(135deg, var(--brand-l4), var(--brand-l6));
+      padding: var(--s5) var(--s5) var(--s7);
+      position: relative; text-align: center;
+    }
+    .dark .detail-top { background: linear-gradient(135deg, var(--brand-l7), var(--brand-l5)); }
+    .detail-top::after {
+      content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 24px;
+      background: var(--card); border-radius: var(--r4) var(--r4) 0 0;
+    }
+    .detail-avatar {
+      width: 56px; height: 56px; border-radius: var(--r-full);
+      background: var(--card); border: 3px solid var(--card);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; color: var(--primary);
+      margin: 0 auto; position: relative; z-index: 2;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .detail-name {
+      font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.95);
+      margin-top: var(--s2); position: relative; z-index: 2;
+    }
+    .detail-role-badge {
+      display: inline-flex; align-items: center; padding: var(--s1) var(--s3);
+      font-size: 12px; font-weight: 600; border-radius: var(--r-full);
+      margin-top: var(--s2); position: relative; z-index: 2;
+      background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.95);
+    }
+    .detail-body { padding: var(--s4) var(--s5); flex: 1; overflow-y: auto; }
+    .detail-section-label {
+      font-size: 11px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--s3);
+    }
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3);
+      margin-bottom: var(--s5);
+    }
+    .info-item {
+      padding: var(--s3); background: var(--secondary); border-radius: var(--r2);
+    }
+    .info-label { font-size: 11px; font-weight: 500; color: var(--muted-foreground); margin-bottom: 2px; }
+    .info-value { font-size: 13px; font-weight: 600; color: var(--foreground); }
+    .info-item.full-width { grid-column: 1 / -1; }
+
+    /* 개인 활동 미니 바 차트 */
+    .mini-bar-chart {
+      display: flex; align-items: flex-end; gap: var(--s2); height: 64px;
+      padding: var(--s3) 0; margin-bottom: var(--s4);
+    }
+    .mini-bar-week {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--s1);
+    }
+    .mini-bar {
+      width: 100%; border-radius: var(--r1) var(--r1) 0 0;
+      background: var(--primary); opacity: 0.7;
+      transition: opacity 0.2s, height 0.4s ease;
+      min-height: 4px;
+    }
+    .mini-bar:hover { opacity: 1; }
+    .mini-bar-label {
+      font-size: 10px; font-weight: 500; color: var(--muted-foreground);
+    }
+    .mini-bar-value {
+      font-size: 10px; font-weight: 600; color: var(--foreground);
+    }
+
+    /* 활동 타임라인 */
+    .timeline { margin-bottom: var(--s5); }
+    .timeline-item {
+      display: flex; gap: var(--s3); padding: var(--s3) 0; position: relative;
+    }
+    .timeline-item:not(:last-child)::after {
+      content: ''; position: absolute; left: 11px; top: 28px; bottom: -4px;
+      width: 2px; background: var(--border);
+    }
+    .timeline-dot {
+      width: 24px; height: 24px; border-radius: var(--r-full); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
+    }
+    .timeline-dot.post { background: rgba(23,162,184,0.12); color: #17A2B8; }
+    .timeline-dot.attend { background: rgba(40,167,69,0.12); color: #28A745; }
+    .timeline-dot.study { background: rgba(255,193,7,0.12); color: #d39e00; }
+    .dark .timeline-dot.post { background: rgba(23,162,184,0.2); color: #5bc0de; }
+    .dark .timeline-dot.attend { background: rgba(40,167,69,0.2); color: #5cb85c; }
+    .dark .timeline-dot.study { background: rgba(255,193,7,0.2); color: #FFC107; }
+    .timeline-content { flex: 1; }
+    .timeline-text { font-size: 13px; font-weight: 500; color: var(--foreground); }
+    .timeline-date { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
+
+    /* 상세 하단 액션 */
+    .detail-actions {
+      display: flex; gap: var(--s3); padding: var(--s4) var(--s5);
+      border-top: 1px solid var(--border); flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+      padding: var(--s2) var(--s4); font-size: 13px; font-weight: 600;
+      border-radius: var(--r2); cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif; border: none;
+    }
+    .btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+    .btn-primary:hover { filter: brightness(0.9); }
+    .btn-outline {
+      background: transparent; color: var(--foreground);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--accent); color: var(--accent-foreground); border-color: var(--primary); }
+    .btn-destructive { background: var(--destructive); color: rgba(255,255,255,0.95); }
+    .btn-destructive:hover { filter: brightness(0.9); }
+    .btn-sm { padding: var(--s1) var(--s3); font-size: 12px; }
+    .dropdown { position: relative; display: inline-flex; }
+    .dropdown-toggle {
+      display: inline-flex; align-items: center; gap: var(--s2);
+      padding: var(--s2) var(--s4); font-size: 13px; font-weight: 600;
+      border-radius: var(--r2); cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif; background: transparent;
+      color: var(--foreground); border: 1px solid var(--border);
+    }
+    .dropdown-toggle:hover { background: var(--accent); border-color: var(--primary); }
+
+    /* 빈 상세 패널 */
+    .detail-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--muted-foreground); gap: var(--s4); padding: var(--s7);
+    }
+    .detail-empty-icon { opacity: 0.3; }
+    .detail-empty-text { font-size: 14px; font-weight: 500; text-align: center; }
+
+    /* ===== 모바일 오버레이 ===== */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 49; opacity: 0; transition: opacity 0.3s;
+    }
+    .sidebar-overlay.show { display: block; opacity: 1; }
+
+    .detail-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 60; align-items: flex-end; justify-content: center;
+    }
+    .detail-modal-overlay.show { display: flex; }
+    .detail-modal {
+      background: var(--card); border-radius: var(--r4) var(--r4) 0 0;
+      width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
+      animation: slideUp 0.35s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .detail-modal-handle {
+      width: 40px; height: 4px; background: var(--gray-4); border-radius: var(--r-full);
+      margin: var(--s3) auto var(--s2);
+    }
+    .detail-modal-close {
+      position: absolute; top: var(--s3); right: var(--s3);
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      background: var(--secondary); border: none; border-radius: var(--r-full);
+      cursor: pointer; color: var(--foreground); z-index: 2;
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 1199px) {
+      .master-detail { flex-direction: column; }
+      .detail-panel { display: none; }
+      .detail-panel.mobile-visible { display: flex; }
+      .chart-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 991px) {
+      .sidebar { position: fixed; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .hamburger { display: flex; }
+      .stat-cards { grid-template-columns: repeat(2, 1fr); }
+      .chart-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+      .stats-section { padding: var(--s4) var(--s4) 0; }
+      .charts-section { padding: var(--s3) var(--s4) 0; }
+      .master-detail-section { padding: var(--s4); padding-top: var(--s4); }
+      .stat-cards { grid-template-columns: 1fr 1fr; gap: var(--s3); }
+      .info-grid { grid-template-columns: 1fr; }
+      .detail-actions { flex-direction: column; }
+      .detail-actions .btn, .detail-actions .dropdown { width: 100%; }
+      .detail-actions .dropdown-toggle { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 575px) {
+      .stat-cards { grid-template-columns: 1fr; }
+      .table-toolbar { gap: var(--s2); }
+      .search-box { min-width: 100%; }
+      .member-table thead th:nth-child(4),
+      .member-table tbody td:nth-child(4) { display: none; }
+      .donut-section { flex-direction: column; align-items: center; text-align: center; }
+    }
+
+    /* ===== prefers-reduced-motion ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 사이드바 오버레이 (모바일) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- 사이드바 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="sidebar-logo-text">
+            <span class="sidebar-logo-title">IGRUS</span>
+            <span class="sidebar-logo-sub">Admin Console</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-label">Management</div>
+        <button class="nav-item" onclick="location.hash='dashboard'">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          대시보드
+        </button>
+        <button class="nav-item active">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          회원관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+          게시판관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          행사관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          문의관리
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+          설문관리
+        </button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" onclick="toggleTheme()">
+          <span class="nav-icon" id="themeIconSidebar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </span>
+          테마 변경
+        </button>
+      </div>
+    </aside>
+
+    <!-- 메인 영역 -->
+    <div class="main-area">
+      <!-- 헤더 -->
+      <header class="header">
+        <div class="header-left">
+          <button class="hamburger" onclick="toggleSidebar()" aria-label="메뉴 열기">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span class="page-title">회원관리</span>
+        </div>
+        <div class="header-right">
+          <button class="theme-toggle" onclick="toggleTheme()" aria-label="테마 변경" id="themeToggle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="themeIconHeader"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+          <div class="admin-info">
+            <div class="admin-avatar">JY</div>
+            <span class="admin-name">김준영</span>
+            <span class="admin-role-badge">관리자</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 콘텐츠 -->
+      <main class="content">
+
+        <!-- ===== 1단계: Stat 카드 행 ===== -->
+        <div class="stats-section">
+          <div class="stat-cards">
+            <!-- 전체 회원 -->
+            <div class="stat-card teal">
+              <div class="stat-card-inner">
+                <div class="stat-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="stat-card-body">
+                  <div class="stat-card-label">전체 회원</div>
+                  <div class="stat-card-number">52</div>
+                  <span class="stat-card-change up">+3 &#8593;</span>
+                </div>
+                <div class="stat-card-sparkline">
+                  <svg width="48" height="24" viewBox="0 0 48 24" fill="none">
+                    <polyline points="0,20 7,16 14,18 21,12 28,14 35,8 42,10 48,4" stroke="var(--primary)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="48" cy="4" r="2" fill="var(--primary)"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <!-- 활동 회원 -->
+            <div class="stat-card green">
+              <div class="stat-card-inner">
+                <div class="stat-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="stat-card-body">
+                  <div class="stat-card-label">활동 회원</div>
+                  <div class="stat-card-number">45</div>
+                  <span class="stat-card-change neutral">86.5%</span>
+                </div>
+                <div class="stat-card-sparkline">
+                  <svg width="48" height="24" viewBox="0 0 48 24" fill="none">
+                    <polyline points="0,14 7,12 14,16 21,10 28,12 35,6 42,8 48,4" stroke="#28A745" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="48" cy="4" r="2" fill="#28A745"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <!-- 휴면 -->
+            <div class="stat-card yellow">
+              <div class="stat-card-inner">
+                <div class="stat-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </div>
+                <div class="stat-card-body">
+                  <div class="stat-card-label">휴면</div>
+                  <div class="stat-card-number">5</div>
+                  <span class="stat-card-change down">-2 &#8595;</span>
+                </div>
+                <div class="stat-card-sparkline">
+                  <svg width="48" height="24" viewBox="0 0 48 24" fill="none">
+                    <polyline points="0,8 7,10 14,6 21,12 28,10 35,16 42,14 48,18" stroke="#d39e00" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="48" cy="18" r="2" fill="#d39e00"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <!-- 대기 -->
+            <div class="stat-card red">
+              <div class="stat-card-inner">
+                <div class="stat-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="stat-card-body">
+                  <div class="stat-card-label">대기</div>
+                  <div class="stat-card-number">3</div>
+                  <span class="stat-card-change neutral">승인 필요</span>
+                </div>
+                <div class="stat-card-sparkline">
+                  <svg width="48" height="24" viewBox="0 0 48 24" fill="none">
+                    <polyline points="0,12 7,14 14,10 21,12 28,8 35,12 42,10 48,12" stroke="#DC3545" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="48" cy="12" r="2" fill="#DC3545"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 2단계: 차트 행 ===== -->
+        <div class="charts-section">
+          <div class="chart-row">
+            <!-- 좌측 (70%): 가입 추이 영역 차트 -->
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <span class="chart-card-eng">Registrations</span>
+                <span class="chart-card-title">일일 회원가입 추이</span>
+              </div>
+              <div class="chart-card-body">
+                <div class="area-chart-wrap">
+                  <svg class="area-chart-svg" viewBox="0 0 560 160" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                      <linearGradient id="areaFillLight" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.25" />
+                        <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.02" />
+                      </linearGradient>
+                    </defs>
+                    <!-- Y축 라벨 -->
+                    <text x="25" y="18" class="area-label-y">8</text>
+                    <text x="25" y="53" class="area-label-y">6</text>
+                    <text x="25" y="88" class="area-label-y">4</text>
+                    <text x="25" y="123" class="area-label-y">2</text>
+                    <text x="25" y="150" class="area-label-y">0</text>
+                    <!-- 그리드 라인 -->
+                    <line x1="35" y1="15" x2="540" y2="15" class="area-grid-line"/>
+                    <line x1="35" y1="50" x2="540" y2="50" class="area-grid-line"/>
+                    <line x1="35" y1="85" x2="540" y2="85" class="area-grid-line"/>
+                    <line x1="35" y1="120" x2="540" y2="120" class="area-grid-line"/>
+                    <line x1="35" y1="148" x2="540" y2="148" class="area-grid-line"/>
+                    <!-- 영역 fill -->
+                    <path d="M35,135 L71,148 L107,120 L143,135 L179,105 L215,120 L251,90 L287,105 L323,75 L359,85 L395,55 L431,70 L467,40 L503,50 L540,25 L540,148 L35,148 Z" class="area-fill-light" />
+                    <!-- 곡선 라인 -->
+                    <path d="M35,135 Q53,141 71,148 Q89,134 107,120 Q125,127 143,135 Q161,120 179,105 Q197,112 215,120 Q233,105 251,90 Q269,97 287,105 Q305,90 323,75 Q341,80 359,85 Q377,70 395,55 Q413,62 431,70 Q449,55 467,40 Q485,45 503,50 Q521,37 540,25" class="area-line"/>
+                    <!-- 마커 -->
+                    <circle cx="35" cy="135" r="3" class="area-marker"/>
+                    <circle cx="107" cy="120" r="3" class="area-marker"/>
+                    <circle cx="179" cy="105" r="3" class="area-marker"/>
+                    <circle cx="251" cy="90" r="3" class="area-marker"/>
+                    <circle cx="323" cy="75" r="3" class="area-marker"/>
+                    <circle cx="395" cy="55" r="3" class="area-marker"/>
+                    <circle cx="467" cy="40" r="3" class="area-marker"/>
+                    <circle cx="540" cy="25" r="4" class="area-marker"/>
+                    <!-- X축 날짜 라벨 -->
+                    <text x="35" y="160" class="area-label-x" text-anchor="middle">2/23</text>
+                    <text x="107" y="160" class="area-label-x" text-anchor="middle">2/25</text>
+                    <text x="179" y="160" class="area-label-x" text-anchor="middle">2/27</text>
+                    <text x="251" y="160" class="area-label-x" text-anchor="middle">3/1</text>
+                    <text x="323" y="160" class="area-label-x" text-anchor="middle">3/3</text>
+                    <text x="395" y="160" class="area-label-x" text-anchor="middle">3/5</text>
+                    <text x="467" y="160" class="area-label-x" text-anchor="middle">3/7</text>
+                    <text x="540" y="160" class="area-label-x" text-anchor="middle">3/8</text>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- 우측 (30%): 역할 분포 도넛 + 상태 분포 수평 바 -->
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <span class="chart-card-eng">Distribution</span>
+              </div>
+              <div class="dist-card-body">
+                <!-- 도넛 차트: 역할 분포 -->
+                <div class="donut-section">
+                  <svg class="donut-svg" viewBox="0 0 120 120">
+                    <!-- 배경 원 -->
+                    <circle cx="60" cy="60" r="44" fill="none" stroke="var(--border)" stroke-width="12" opacity="0.3"/>
+                    <!-- 관리자: 3/52 ≈ 5.8% — 약 16 of 276.5 -->
+                    <circle cx="60" cy="60" r="44" fill="none" stroke="#DC3545" stroke-width="12"
+                      stroke-dasharray="16 260.5" stroke-dashoffset="0"
+                      transform="rotate(-90 60 60)" opacity="0.85"/>
+                    <!-- 정회원: 35/52 ≈ 67.3% — 약 186 -->
+                    <circle cx="60" cy="60" r="44" fill="none" stroke="var(--primary)" stroke-width="12"
+                      stroke-dasharray="186 90.5" stroke-dashoffset="-16"
+                      transform="rotate(-90 60 60)" opacity="0.85"/>
+                    <!-- 준회원: 14/52 ≈ 26.9% — 약 74.5 -->
+                    <circle cx="60" cy="60" r="44" fill="none" stroke="#17A2B8" stroke-width="12"
+                      stroke-dasharray="74.5 202" stroke-dashoffset="-202"
+                      transform="rotate(-90 60 60)" opacity="0.8"/>
+                    <!-- 중앙 텍스트 -->
+                    <text x="60" y="56" class="donut-center-text" text-anchor="middle">52</text>
+                    <text x="60" y="70" class="donut-center-label" text-anchor="middle">TOTAL</text>
+                  </svg>
+                  <div class="donut-legend">
+                    <div class="donut-legend-item">
+                      <span class="donut-legend-dot" style="background: #DC3545;"></span>
+                      관리자
+                      <span class="donut-legend-value">3</span>
+                    </div>
+                    <div class="donut-legend-item">
+                      <span class="donut-legend-dot" style="background: var(--primary);"></span>
+                      정회원
+                      <span class="donut-legend-value">35</span>
+                    </div>
+                    <div class="donut-legend-item">
+                      <span class="donut-legend-dot" style="background: #17A2B8;"></span>
+                      준회원
+                      <span class="donut-legend-value">14</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 상태 분포 수평 바 -->
+                <div class="status-bar-section">
+                  <div class="status-bar-label">상태 분포</div>
+                  <div class="hbar-chart">
+                    <div class="hbar-item">
+                      <div class="hbar-header">
+                        <span>활동</span>
+                        <span class="hbar-value">45 (86.5%)</span>
+                      </div>
+                      <div class="hbar-track">
+                        <div class="hbar-fill" style="width: 86.5%; background: #28A745;"></div>
+                      </div>
+                    </div>
+                    <div class="hbar-item">
+                      <div class="hbar-header">
+                        <span>휴면</span>
+                        <span class="hbar-value">5 (9.6%)</span>
+                      </div>
+                      <div class="hbar-track">
+                        <div class="hbar-fill" style="width: 9.6%; background: var(--gray-4);"></div>
+                      </div>
+                    </div>
+                    <div class="hbar-item">
+                      <div class="hbar-header">
+                        <span>정지</span>
+                        <span class="hbar-value">1 (1.9%)</span>
+                      </div>
+                      <div class="hbar-track">
+                        <div class="hbar-fill" style="width: 4%; background: #DC3545;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 마스터-디테일 ===== -->
+        <div class="master-detail-section">
+          <div class="master-detail">
+            <!-- 좌측: 테이블 -->
+            <div class="table-panel">
+              <div class="table-toolbar">
+                <div class="search-box">
+                  <span class="search-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                  <input type="text" placeholder="이름, 학번, 학과로 검색..." />
+                </div>
+                <button class="filter-btn active">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                  전체
+                </button>
+                <button class="filter-btn">활동</button>
+                <button class="filter-btn">휴면</button>
+                <button class="filter-btn">정지</button>
+              </div>
+              <div style="overflow-x: auto; flex: 1;">
+                <table class="member-table">
+                  <thead>
+                    <tr>
+                      <th>회원</th>
+                      <th>역할</th>
+                      <th>상태</th>
+                      <th>최근 7일</th>
+                    </tr>
+                  </thead>
+                  <tbody id="memberTableBody">
+                    <!-- JS로 렌더링 -->
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-footer">
+                <span class="table-footer-info">10명 중 1-10 표시</span>
+                <div class="table-pagination">
+                  <button class="page-btn" aria-label="이전 페이지">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <button class="page-btn active">1</button>
+                  <button class="page-btn">2</button>
+                  <button class="page-btn">3</button>
+                  <button class="page-btn" aria-label="다음 페이지">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 우측: 상세 패널 (데스크톱) -->
+            <div class="detail-panel slide-in" id="detailPanel">
+              <div class="detail-top" id="detailTop">
+                <div class="detail-avatar" id="detailAvatar">JY</div>
+                <div class="detail-name" id="detailName">김준영</div>
+                <div class="detail-role-badge" id="detailRole">관리자</div>
+              </div>
+              <div class="detail-body">
+                <div class="detail-section-label">Information</div>
+                <div class="info-grid" id="detailInfoGrid">
+                  <div class="info-item">
+                    <div class="info-label">학번</div>
+                    <div class="info-value" id="detailStudentId">20210001</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">학과</div>
+                    <div class="info-value" id="detailDept">컴퓨터공학과</div>
+                  </div>
+                  <div class="info-item full-width">
+                    <div class="info-label">이메일</div>
+                    <div class="info-value" id="detailEmail">junyoung.kim@example.com</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">가입일</div>
+                    <div class="info-value" id="detailJoinDate">2021-03-15</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">상태</div>
+                    <div class="info-value" id="detailStatus"><span class="status-badge status-active">활동</span></div>
+                  </div>
+                </div>
+
+                <div class="detail-section-label">Activity (4 Weeks)</div>
+                <div class="mini-bar-chart" id="detailMiniChart">
+                  <!-- JS로 렌더링 -->
+                </div>
+
+                <div class="detail-section-label">Recent Activity</div>
+                <div class="timeline" id="detailTimeline">
+                  <!-- JS로 렌더링 -->
+                </div>
+              </div>
+              <div class="detail-actions">
+                <button class="btn btn-primary btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  역할 변경
+                </button>
+                <div class="dropdown">
+                  <button class="dropdown-toggle btn-sm">
+                    상태 변경
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </div>
+                <button class="btn btn-destructive btn-sm" style="margin-left: auto;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  삭제
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- 모바일 상세 모달 -->
+  <div class="detail-modal-overlay" id="mobileModal">
+    <div class="detail-modal" id="mobileModalContent">
+      <div class="detail-modal-handle"></div>
+      <button class="detail-modal-close" onclick="closeMobileModal()" aria-label="닫기">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div id="mobileDetailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    /* 회원 데이터 */
+    const members = [
+      { name: '김준영', initials: 'JY', dept: '컴퓨터공학과', role: '관리자', roleClass: 'role-admin', status: '활동', statusClass: 'status-active', studentId: '20210001', email: 'junyoung.kim@example.com', joinDate: '2021-03-15', avatarGrad: 'linear-gradient(135deg, var(--brand-l4), var(--brand-l6))', recentDays: [1,1,0,1,1,1,1], weeklyActivity: [8,12,6,10],
+        activity: [
+          { type: 'post', text: '게시글 작성 — "스프링부트 스터디 모집"', date: '2026-03-07' },
+          { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+          { type: 'study', text: '스터디 참여 — 알고리즘 스터디', date: '2026-03-03' }
+        ]},
+      { name: '이지훈', initials: 'JH', dept: '소프트웨어학과', role: '정회원', roleClass: 'role-regular', status: '활동', statusClass: 'status-active', studentId: '20220015', email: 'jihoon.lee@example.com', joinDate: '2022-03-10', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', recentDays: [1,0,1,1,0,1,1], weeklyActivity: [5,7,9,6],
+        activity: [
+          { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+          { type: 'study', text: '스터디 참여 — 웹개발 스터디', date: '2026-03-02' },
+          { type: 'post', text: '게시글 작성 — "React 팁 공유"', date: '2026-02-28' }
+        ]},
+      { name: '박서연', initials: 'SY', dept: '정보통신공학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20230042', email: 'seoyeon.park@example.com', joinDate: '2023-09-01', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', recentDays: [0,1,1,0,1,0,1], weeklyActivity: [3,5,4,6],
+        activity: [
+          { type: 'study', text: '스터디 참여 — Python 기초', date: '2026-03-06' },
+          { type: 'attend', text: '출석 체크 — OT', date: '2026-03-01' },
+          { type: 'post', text: '게시글 작성 — "자기소개"', date: '2026-02-25' }
+        ]},
+      { name: '최민수', initials: 'MS', dept: '전자공학과', role: '정회원', roleClass: 'role-regular', status: '활동', statusClass: 'status-active', studentId: '20210089', email: 'minsoo.choi@example.com', joinDate: '2021-09-05', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', recentDays: [1,1,1,0,1,1,0], weeklyActivity: [7,9,5,8],
+        activity: [
+          { type: 'post', text: '게시글 작성 — "임베디드 프로젝트 후기"', date: '2026-03-04' },
+          { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+          { type: 'study', text: '스터디 참여 — 임베디드 스터디', date: '2026-02-27' }
+        ]},
+      { name: '한유진', initials: 'YJ', dept: '컴퓨터공학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20240003', email: 'yujin.han@example.com', joinDate: '2024-03-12', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', recentDays: [1,0,0,1,1,0,1], weeklyActivity: [2,4,3,5],
+        activity: [
+          { type: 'attend', text: '출석 체크 — OT', date: '2026-03-01' },
+          { type: 'study', text: '스터디 참여 — 알고리즘 스터디', date: '2026-02-28' },
+          { type: 'post', text: '게시글 작성 — "가입 인사"', date: '2026-02-25' }
+        ]},
+      { name: '김도현', initials: 'DH', dept: '컴퓨터공학과', role: '정회원', roleClass: 'role-regular', status: '휴면', statusClass: 'status-dormant', studentId: '20200055', email: 'dohyeon.kim@example.com', joinDate: '2020-03-20', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', recentDays: [0,0,0,0,0,0,0], weeklyActivity: [0,0,1,0],
+        activity: [
+          { type: 'attend', text: '출석 체크 — 정기 모임', date: '2025-11-15' },
+          { type: 'post', text: '게시글 작성 — "졸업 프로젝트 질문"', date: '2025-10-20' },
+          { type: 'study', text: '스터디 참여 — DB 스터디', date: '2025-09-30' }
+        ]},
+      { name: '정하은', initials: 'HE', dept: 'AI융합학과', role: '정회원', roleClass: 'role-regular', status: '활동', statusClass: 'status-active', studentId: '20220078', email: 'haeun.jung@example.com', joinDate: '2022-09-01', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', recentDays: [1,1,0,1,0,1,1], weeklyActivity: [6,8,7,9],
+        activity: [
+          { type: 'study', text: '스터디 참여 — ML 스터디', date: '2026-03-06' },
+          { type: 'post', text: '게시글 작성 — "딥러닝 논문 리뷰"', date: '2026-03-03' },
+          { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' }
+        ]},
+      { name: '오수빈', initials: 'SB', dept: '데이터사이언스학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20240021', email: 'subin.oh@example.com', joinDate: '2024-09-01', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', recentDays: [0,1,1,0,0,1,0], weeklyActivity: [3,2,4,3],
+        activity: [
+          { type: 'attend', text: '출석 체크 — OT', date: '2026-03-01' },
+          { type: 'post', text: '게시글 작성 — "자기소개"', date: '2026-02-28' },
+          { type: 'study', text: '스터디 참여 — 데이터분석 스터디', date: '2026-02-26' }
+        ]},
+      { name: '윤재현', initials: 'JH', dept: '소프트웨어학과', role: '준회원', roleClass: 'role-associate', status: '활동', statusClass: 'status-active', studentId: '20240055', email: 'jaehyun.yoon@example.com', joinDate: '2024-09-05', avatarGrad: 'linear-gradient(135deg, #FFC107, #e0a800)', recentDays: [1,0,1,1,1,0,0], weeklyActivity: [4,3,5,4],
+        activity: [
+          { type: 'study', text: '스터디 참여 — 웹개발 스터디', date: '2026-03-04' },
+          { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-03-05' },
+          { type: 'post', text: '게시글 작성 — "CSS 꿀팁"', date: '2026-02-27' }
+        ]},
+      { name: '송예린', initials: 'YR', dept: '정보통신공학과', role: '정회원', roleClass: 'role-regular', status: '정지', statusClass: 'status-suspended', studentId: '20210034', email: 'yerin.song@example.com', joinDate: '2021-03-20', avatarGrad: 'linear-gradient(135deg, #17A2B8, #138496)', recentDays: [0,0,0,0,0,0,0], weeklyActivity: [0,0,0,0],
+        activity: [
+          { type: 'post', text: '게시글 작성 — "규정 위반 게시글"', date: '2026-02-15' },
+          { type: 'attend', text: '출석 체크 — 정기 모임', date: '2026-02-10' },
+          { type: 'study', text: '스터디 참여 — 네트워크 스터디', date: '2026-01-28' }
+        ]}
+    ];
+
+    let selectedIdx = 0;
+
+    const timelineIcons = {
+      post: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+      attend: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+      study: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
+    };
+
+    const weekLabels = ['1주전', '2주전', '3주전', '4주전'];
+
+    /* 테이블 렌더링 */
+    function renderTable() {
+      const tbody = document.getElementById('memberTableBody');
+      tbody.innerHTML = members.map((m, i) => {
+        const dotsHtml = m.recentDays.map(d =>
+          '<span class="activity-dot ' + (d ? 'active-day' : 'inactive-day') + '" title="' + (d ? '활동' : '비활동') + '"></span>'
+        ).join('');
+        return '<tr class="' + (i === selectedIdx ? 'selected' : '') + '" onclick="selectMember(' + i + ')" data-idx="' + i + '">' +
+          '<td><div class="member-cell">' +
+            '<div class="member-mini-avatar" style="background: ' + m.avatarGrad + ';">' + m.initials + '</div>' +
+            '<div class="member-name-col"><span class="member-name-text">' + m.name + '</span><span class="member-dept-text">' + m.dept + '</span></div>' +
+          '</div></td>' +
+          '<td><span class="role-badge ' + m.roleClass + '">' + m.role + '</span></td>' +
+          '<td><span class="status-badge ' + m.statusClass + '">' + m.status + '</span></td>' +
+          '<td><div class="activity-dots">' + dotsHtml + '</div></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    /* 미니 바 차트 렌더링 */
+    function renderMiniBarChart(weeklyActivity) {
+      const maxVal = Math.max(...weeklyActivity, 1);
+      const chart = document.getElementById('detailMiniChart');
+      chart.innerHTML = weeklyActivity.map((v, i) => {
+        const h = Math.max((v / maxVal) * 48, 4);
+        return '<div class="mini-bar-week">' +
+          '<span class="mini-bar-value">' + v + '</span>' +
+          '<div class="mini-bar" style="height: ' + h + 'px;"></div>' +
+          '<span class="mini-bar-label">' + (4 - i) + 'W</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    /* 회원 선택 */
+    function selectMember(idx) {
+      selectedIdx = idx;
+      const m = members[idx];
+
+      document.querySelectorAll('#memberTableBody tr').forEach((tr, i) => {
+        tr.classList.toggle('selected', i === idx);
+      });
+
+      const panel = document.getElementById('detailPanel');
+      document.getElementById('detailAvatar').textContent = m.initials;
+      document.getElementById('detailName').textContent = m.name;
+      document.getElementById('detailRole').textContent = m.role;
+      document.getElementById('detailStudentId').textContent = m.studentId;
+      document.getElementById('detailDept').textContent = m.dept;
+      document.getElementById('detailEmail').textContent = m.email;
+      document.getElementById('detailJoinDate').textContent = m.joinDate;
+      document.getElementById('detailStatus').innerHTML = '<span class="status-badge ' + m.statusClass + '">' + m.status + '</span>';
+
+      renderMiniBarChart(m.weeklyActivity);
+
+      const tl = document.getElementById('detailTimeline');
+      tl.innerHTML = m.activity.map(a =>
+        '<div class="timeline-item">' +
+          '<div class="timeline-dot ' + a.type + '">' + timelineIcons[a.type] + '</div>' +
+          '<div class="timeline-content">' +
+            '<div class="timeline-text">' + a.text + '</div>' +
+            '<div class="timeline-date">' + a.date + '</div>' +
+          '</div>' +
+        '</div>'
+      ).join('');
+
+      panel.classList.remove('slide-in');
+      void panel.offsetWidth;
+      panel.classList.add('slide-in');
+
+      if (window.innerWidth < 1200) {
+        showMobileModal(m);
+      }
+    }
+
+    function showMobileModal(m) {
+      const overlay = document.getElementById('mobileModal');
+      const content = document.getElementById('mobileDetailContent');
+      const maxVal = Math.max(...m.weeklyActivity, 1);
+      const barsHtml = m.weeklyActivity.map((v, i) => {
+        const h = Math.max((v / maxVal) * 48, 4);
+        return '<div class="mini-bar-week"><span class="mini-bar-value">' + v + '</span><div class="mini-bar" style="height:' + h + 'px;"></div><span class="mini-bar-label">' + (4 - i) + 'W</span></div>';
+      }).join('');
+
+      content.innerHTML =
+        '<div class="detail-top">' +
+          '<div class="detail-avatar">' + m.initials + '</div>' +
+          '<div class="detail-name">' + m.name + '</div>' +
+          '<div class="detail-role-badge">' + m.role + '</div>' +
+        '</div>' +
+        '<div class="detail-body">' +
+          '<div class="detail-section-label">Information</div>' +
+          '<div class="info-grid">' +
+            '<div class="info-item"><div class="info-label">학번</div><div class="info-value">' + m.studentId + '</div></div>' +
+            '<div class="info-item"><div class="info-label">학과</div><div class="info-value">' + m.dept + '</div></div>' +
+            '<div class="info-item full-width"><div class="info-label">이메일</div><div class="info-value">' + m.email + '</div></div>' +
+            '<div class="info-item"><div class="info-label">가입일</div><div class="info-value">' + m.joinDate + '</div></div>' +
+            '<div class="info-item"><div class="info-label">상태</div><div class="info-value"><span class="status-badge ' + m.statusClass + '">' + m.status + '</span></div></div>' +
+          '</div>' +
+          '<div class="detail-section-label">Activity (4 Weeks)</div>' +
+          '<div class="mini-bar-chart">' + barsHtml + '</div>' +
+          '<div class="detail-section-label">Recent Activity</div>' +
+          '<div class="timeline">' +
+            m.activity.map(a =>
+              '<div class="timeline-item">' +
+                '<div class="timeline-dot ' + a.type + '">' + timelineIcons[a.type] + '</div>' +
+                '<div class="timeline-content">' +
+                  '<div class="timeline-text">' + a.text + '</div>' +
+                  '<div class="timeline-date">' + a.date + '</div>' +
+                '</div>' +
+              '</div>'
+            ).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="detail-actions">' +
+          '<button class="btn btn-primary btn-sm">역할 변경</button>' +
+          '<div class="dropdown"><button class="dropdown-toggle btn-sm">상태 변경 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button></div>' +
+          '<button class="btn btn-destructive btn-sm" style="margin-left:auto;">삭제</button>' +
+        '</div>';
+
+      overlay.classList.add('show');
+    }
+
+    function closeMobileModal() {
+      document.getElementById('mobileModal').classList.remove('show');
+    }
+
+    /* 사이드바 토글 */
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+
+    /* 다크모드 토글 */
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      const sunIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+      const moonIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      document.getElementById('themeIconHeader').outerHTML = isDark
+        ? moonIcon.replace('<svg', '<svg id="themeIconHeader"')
+        : sunIcon.replace('<svg', '<svg id="themeIconHeader"');
+      document.getElementById('themeIconSidebar').innerHTML = isDark ? moonIcon : sunIcon;
+    }
+
+    /* ESC로 모달 닫기 */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMobileModal();
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+      }
+    });
+
+    /* 도넛 차트 호버 효과 */
+    document.querySelectorAll('.donut-svg circle[stroke-dasharray]').forEach(circle => {
+      circle.style.cursor = 'pointer';
+      circle.style.transition = 'opacity 0.2s';
+      circle.addEventListener('mouseenter', function() {
+        this.style.opacity = '1';
+        this.style.filter = 'drop-shadow(0 0 4px rgba(3,166,158,0.3))';
+      });
+      circle.addEventListener('mouseleave', function() {
+        this.style.opacity = this.getAttribute('opacity');
+        this.style.filter = 'none';
+      });
+    });
+
+    /* 초기 렌더링 */
+    renderTable();
+    selectMember(0);
+  </script>
+</body>
+</html>
