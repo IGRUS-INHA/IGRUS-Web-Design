@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS — 설문 결과 확인</title>
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+    }
+
+    /* ===== 상단 내비게이션 (eventEX 참조) ===== */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 14px;
+      color: var(--muted-foreground);
+      text-decoration: none;
+      padding: var(--s5) var(--s6) 0;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .back-link:hover {
+      color: var(--foreground);
+    }
+
+    .back-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ===== 페이지 헤더 ===== */
+    .page-header {
+      padding: var(--s5) var(--s6) 0;
+      max-width: 80rem;
+    }
+
+    .header-title-row {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      flex-wrap: wrap;
+      margin-bottom: var(--s2);
+    }
+
+    .header-icon {
+      width: 28px;
+      height: 28px;
+      color: var(--muted-foreground);
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--foreground);
+      line-height: 1.3;
+    }
+
+    .header-sub {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      flex-wrap: wrap;
+      font-size: 14px;
+      color: var(--muted-foreground);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--s3);
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--r1);
+    }
+
+    .badge-primary {
+      background: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    /* ===== 탭 내비게이션 ===== */
+    .tab-nav {
+      display: flex;
+      gap: var(--s2);
+      padding: var(--s5) var(--s6) 0;
+      max-width: 80rem;
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s3) var(--s5);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      color: var(--muted-foreground);
+      background: none;
+      border: none;
+      border-radius: var(--r-full);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab-btn:hover {
+      color: var(--foreground);
+      background: var(--muted);
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .tab-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ===== 메인 콘텐츠 ===== */
+    .content {
+      padding: var(--s5) var(--s6) var(--s7);
+      max-width: 80rem;
+    }
+
+    /* ===== 질문 카드 (surveyEX 구글폼 스타일) ===== */
+    .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r3);
+      margin-bottom: var(--s5);
+      overflow: hidden;
+    }
+
+    .question-type {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s4) var(--s5) 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+    }
+
+    .question-type svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .question-header {
+      padding: var(--s3) var(--s5) 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--s4);
+    }
+
+    .question-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--foreground);
+      line-height: 1.5;
+    }
+
+    .question-meta {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      margin-top: var(--s2);
+      padding-left: var(--s5);
+    }
+
+    .copy-chart-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s1);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      color: var(--primary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      padding: var(--s1) var(--s2);
+      border-radius: var(--r2);
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .copy-chart-btn:hover {
+      background: var(--accent);
+    }
+
+    .copy-chart-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .question-body {
+      padding: var(--s4) var(--s5) var(--s5);
+    }
+
+    .question-divider {
+      height: 4px;
+      background: var(--muted);
+      border-radius: var(--r-full);
+      margin-top: var(--s4);
+    }
+
+    /* ===== 객관식 막대 그래프 ===== */
+    .bar-chart {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s3);
+    }
+
+    .bar-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s4);
+    }
+
+    .bar-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--foreground);
+      min-width: 140px;
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 28px;
+      background: var(--muted);
+      border-radius: var(--r2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: var(--r2);
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      padding-left: var(--s3);
+      transition: width 0.6s ease;
+      min-width: 0;
+    }
+
+    .bar-fill.color-1 { background: var(--primary); }
+    .bar-fill.color-2 { background: var(--brand-l5); }
+    .bar-fill.color-3 { background: var(--brand-l6); }
+    .bar-fill.color-4 { background: var(--brand-l7); }
+    .bar-fill.color-5 { background: rgba(108, 117, 125, 0.5); }
+
+    .bar-percent {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      min-width: 48px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .bar-count {
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+    /* ===== 도넛 차트 (CSS) ===== */
+    .donut-row {
+      display: flex;
+      gap: var(--s6);
+      align-items: center;
+    }
+
+    .donut-chart {
+      width: 160px;
+      height: 160px;
+      border-radius: var(--r-full);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 30px;
+      background: var(--card);
+      border-radius: var(--r-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .donut-center .num {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--foreground);
+      line-height: 1;
+    }
+
+    .donut-center .label {
+      font-size: 10px;
+      color: var(--muted-foreground);
+      margin-top: 2px;
+    }
+
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s2);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 13px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--r-full);
+      flex-shrink: 0;
+    }
+
+    .legend-label {
+      color: var(--foreground);
+      font-weight: 500;
+    }
+
+    .legend-count {
+      color: var(--muted-foreground);
+      font-size: 12px;
+      margin-left: auto;
+    }
+
+    /* ===== 리커트 척도 ===== */
+    .likert-chart {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s4);
+    }
+
+    .likert-avg {
+      display: flex;
+      align-items: baseline;
+      gap: var(--s2);
+      margin-bottom: var(--s2);
+    }
+
+    .likert-avg .score {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .likert-avg .max {
+      font-size: 16px;
+      color: var(--muted-foreground);
+      font-weight: 500;
+    }
+
+    .likert-bars {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s2);
+    }
+
+    .likert-row {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+
+    .likert-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      min-width: 56px;
+      text-align: right;
+    }
+
+    .likert-track {
+      flex: 1;
+      height: 20px;
+      background: var(--muted);
+      border-radius: var(--r1);
+      overflow: hidden;
+    }
+
+    .likert-fill {
+      height: 100%;
+      border-radius: var(--r1);
+      background: var(--primary);
+      transition: width 0.5s ease;
+    }
+
+    .likert-count {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    /* ===== 서술형 응답 ===== */
+    .text-responses {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s3);
+    }
+
+    .text-response {
+      padding: var(--s3) var(--s4);
+      background: var(--muted);
+      border-radius: var(--r2);
+      font-size: 14px;
+      color: var(--foreground);
+      line-height: 1.5;
+      border-left: 3px solid var(--border);
+    }
+
+    .text-response:nth-child(odd) {
+      border-left-color: var(--primary);
+    }
+
+    .responses-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      margin-top: var(--s3);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: opacity 0.15s;
+    }
+
+    .responses-toggle:hover {
+      opacity: 0.7;
+    }
+
+    .responses-toggle svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .hidden-responses {
+      display: none;
+    }
+
+    .hidden-responses.show {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s3);
+      margin-top: var(--s3);
+    }
+
+    /* ===== 단답형 워드클라우드식 태그 ===== */
+    .short-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--s2);
+      margin-bottom: var(--s4);
+    }
+
+    .short-tag {
+      padding: var(--s1) var(--s3);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--r-full);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+      background: var(--background);
+    }
+
+    .short-tag.popular {
+      background: var(--accent);
+      border-color: var(--primary);
+      color: var(--accent-foreground);
+      font-weight: 600;
+    }
+
+    .short-tag .tag-count {
+      font-size: 11px;
+      color: var(--muted-foreground);
+      margin-left: var(--s1);
+    }
+
+    /* ===== 푸터 ===== */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: var(--s6);
+      margin-top: var(--s7);
+    }
+
+    .footer-inner {
+      max-width: 80rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--s5);
+    }
+
+    .footer-brand {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: var(--s1);
+    }
+
+    .footer-desc {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      margin-bottom: var(--s3);
+    }
+
+    .footer-address {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 13px;
+      color: var(--muted-foreground);
+    }
+
+    .footer-address svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .footer-right {
+      text-align: right;
+    }
+
+    .footer-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: var(--s3);
+    }
+
+    .footer-contact {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s2);
+      font-size: 13px;
+      color: var(--muted-foreground);
+    }
+
+    .footer-contact a {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      color: var(--muted-foreground);
+      text-decoration: none;
+    }
+
+    .footer-contact svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .footer-social {
+      margin-top: var(--s4);
+    }
+
+    .footer-social-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: var(--s2);
+    }
+
+    .footer-social a {
+      color: var(--muted-foreground);
+      transition: color 0.15s;
+    }
+
+    .footer-social a:hover {
+      color: var(--foreground);
+    }
+
+    .footer-social svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .footer-bottom {
+      max-width: 80rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: var(--s5);
+      margin-top: var(--s5);
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted-foreground);
+      flex-wrap: wrap;
+      gap: var(--s3);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: var(--s4);
+    }
+
+    .footer-links a {
+      color: var(--muted-foreground);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer-links a:hover {
+      color: var(--foreground);
+    }
+
+    /* ===== 다크모드 토글 (float) ===== */
+    .theme-fab {
+      position: fixed;
+      bottom: var(--s5);
+      right: var(--s5);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-full);
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 50;
+      transition: background 0.15s;
+    }
+
+    .theme-fab:hover {
+      background: var(--muted);
+    }
+
+    .theme-fab svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 767px) {
+      .back-link,
+      .page-header,
+      .tab-nav,
+      .content {
+        padding-left: var(--s4);
+        padding-right: var(--s4);
+      }
+
+      .page-title {
+        font-size: 22px;
+      }
+
+      .donut-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .donut-chart {
+        align-self: center;
+      }
+
+      .donut-legend {
+        width: 100%;
+      }
+
+      .bar-label {
+        min-width: 100px;
+        font-size: 12px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+      }
+
+      .footer-right {
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 575px) {
+      .bar-item {
+        flex-wrap: wrap;
+        gap: var(--s2);
+      }
+
+      .bar-label {
+        min-width: 100%;
+      }
+
+      .likert-label {
+        min-width: 40px;
+        font-size: 12px;
+      }
+
+      .tab-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
+    /* ===== 접근성 ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+
+    /* ===== 스크롤바 ===== */
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(3, 166, 158, 0.5); border-radius: var(--r-full); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(3, 166, 158, 0.7); }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(102, 203, 197, 0.5); }
+    .dark ::-webkit-scrollbar-thumb:hover { background: rgba(102, 203, 197, 0.7); }
+    html { scrollbar-width: thin; scrollbar-color: rgba(3, 166, 158, 0.5) transparent; }
+  </style>
+</head>
+<body>
+
+  <!-- 뒤로가기 -->
+  <a class="back-link" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    행사 목록으로 돌아가기
+  </a>
+
+  <!-- 페이지 헤더 (eventEX 동일) -->
+  <div class="page-header">
+    <div class="header-title-row">
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      <h1 class="page-title">신청자 관리</h1>
+    </div>
+    <div class="header-sub">
+      <span>개발 분야 소개 세미나</span>
+      <span class="badge badge-primary">선발제</span>
+      <span>1 / 30명</span>
+    </div>
+  </div>
+
+  <!-- 탭 내비게이션 (eventEX 동일 + 설문 확인 추가) -->
+  <div class="tab-nav">
+    <button class="tab-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      리스트
+    </button>
+    <button class="tab-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>
+      대시보드
+    </button>
+    <button class="tab-btn active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      설문 확인
+    </button>
+  </div>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="content">
+
+    <!-- 응답 요약 헤더 (surveyEX 스타일) -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--s5);">
+      <h2 style="font-size:22px; font-weight:700; color:var(--foreground);">응답 18개</h2>
+    </div>
+
+    <!-- Q1: 객관식 (막대 그래프) — surveyEX 스타일 -->
+    <div class="question-card">
+      <div class="question-type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+        객관식
+      </div>
+      <div class="question-header">
+        <div class="question-title">이번 세미나에서 가장 흥미로웠던 세션은 무엇인가요?</div>
+        <button class="copy-chart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          차트 복사
+        </button>
+      </div>
+      <div class="question-meta">응답 18개</div>
+      <div class="question-body">
+        <div class="bar-chart">
+          <div class="bar-item">
+            <span class="bar-label">웹 프론트엔드 개발</span>
+            <div class="bar-track"><div class="bar-fill color-1" style="width:44.4%"></div></div>
+            <span class="bar-percent">44.4% <span class="bar-count">(8)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">백엔드 & API 설계</span>
+            <div class="bar-track"><div class="bar-fill color-2" style="width:27.8%"></div></div>
+            <span class="bar-percent">27.8% <span class="bar-count">(5)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">모바일 앱 개발</span>
+            <div class="bar-track"><div class="bar-fill color-3" style="width:16.7%"></div></div>
+            <span class="bar-percent">16.7% <span class="bar-count">(3)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">AI / 머신러닝 기초</span>
+            <div class="bar-track"><div class="bar-fill color-4" style="width:11.1%"></div></div>
+            <span class="bar-percent">11.1% <span class="bar-count">(2)</span></span>
+          </div>
+        </div>
+        <div class="question-divider"></div>
+      </div>
+    </div>
+
+    <!-- Q2: 객관식 (파이 차트) — surveyEX 스타일 -->
+    <div class="question-card">
+      <div class="question-type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+        객관식
+      </div>
+      <div class="question-header">
+        <div class="question-title">개발 경험이 어느 정도인가요?</div>
+        <button class="copy-chart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          차트 복사
+        </button>
+      </div>
+      <div class="question-meta">응답 18개</div>
+      <div class="question-body">
+        <div class="donut-row">
+          <div class="donut-chart" style="background: conic-gradient(var(--primary) 0% 38.9%, var(--brand-l5) 38.9% 66.7%, var(--brand-l7) 66.7% 83.3%, var(--gray-4) 83.3% 100%);">
+            <div class="donut-center">
+              <span class="num">18</span>
+              <span class="label">응답</span>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--primary)"></span>
+              <span class="legend-label">입문 (6개월 미만)</span>
+              <span class="legend-count">7명 (38.9%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--brand-l5)"></span>
+              <span class="legend-label">초급 (6개월~1년)</span>
+              <span class="legend-count">5명 (27.8%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--brand-l7)"></span>
+              <span class="legend-label">중급 (1~2년)</span>
+              <span class="legend-count">3명 (16.7%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--gray-4)"></span>
+              <span class="legend-label">경험 없음</span>
+              <span class="legend-count">3명 (16.7%)</span>
+            </div>
+          </div>
+        </div>
+        <div class="question-divider"></div>
+      </div>
+    </div>
+
+    <!-- Q3: 리커트 척도 -->
+    <div class="question-card">
+      <div class="question-type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        만족도
+      </div>
+      <div class="question-header">
+        <div class="question-title">세미나의 전반적인 만족도는 어느 정도인가요?</div>
+        <button class="copy-chart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          차트 복사
+        </button>
+      </div>
+      <div class="question-meta">응답 18개</div>
+      <div class="question-body">
+        <div class="likert-chart">
+          <div class="likert-avg">
+            <span class="score">4.2</span>
+            <span class="max">/ 5.0</span>
+          </div>
+          <div class="likert-bars">
+            <div class="likert-row">
+              <span class="likert-label">5 매우만족</span>
+              <div class="likert-track"><div class="likert-fill" style="width:38.9%;"></div></div>
+              <span class="likert-count">7</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">4 만족</span>
+              <div class="likert-track"><div class="likert-fill" style="width:33.3%; opacity:0.85;"></div></div>
+              <span class="likert-count">6</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">3 보통</span>
+              <div class="likert-track"><div class="likert-fill" style="width:16.7%; opacity:0.7;"></div></div>
+              <span class="likert-count">3</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">2 불만족</span>
+              <div class="likert-track"><div class="likert-fill" style="width:5.6%; opacity:0.55;"></div></div>
+              <span class="likert-count">1</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">1 매우불만</span>
+              <div class="likert-track"><div class="likert-fill" style="width:5.6%; opacity:0.4;"></div></div>
+              <span class="likert-count">1</span>
+            </div>
+          </div>
+        </div>
+        <div class="question-divider"></div>
+      </div>
+    </div>
+
+    <!-- Q4: 체크박스 (복수 선택) 막대 그래프 -->
+    <div class="question-card">
+      <div class="question-type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
+        체크박스
+      </div>
+      <div class="question-header">
+        <div class="question-title">향후 동아리에서 진행했으면 하는 활동을 모두 선택해주세요.</div>
+        <button class="copy-chart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          차트 복사
+        </button>
+      </div>
+      <div class="question-meta">응답 18개</div>
+      <div class="question-body">
+        <div class="bar-chart">
+          <div class="bar-item">
+            <span class="bar-label">프로젝트 팀 빌딩</span>
+            <div class="bar-track"><div class="bar-fill color-1" style="width:77.8%"></div></div>
+            <span class="bar-percent">77.8% <span class="bar-count">(14)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">기술 세미나</span>
+            <div class="bar-track"><div class="bar-fill color-2" style="width:66.7%"></div></div>
+            <span class="bar-percent">66.7% <span class="bar-count">(12)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">해커톤 참가</span>
+            <div class="bar-track"><div class="bar-fill color-3" style="width:55.6%"></div></div>
+            <span class="bar-percent">55.6% <span class="bar-count">(10)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">스터디 그룹</span>
+            <div class="bar-track"><div class="bar-fill color-4" style="width:50%"></div></div>
+            <span class="bar-percent">50.0% <span class="bar-count">(9)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">멘토링</span>
+            <div class="bar-track"><div class="bar-fill color-5" style="width:33.3%"></div></div>
+            <span class="bar-percent">33.3% <span class="bar-count">(6)</span></span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-label">네트워킹 행사</span>
+            <div class="bar-track"><div class="bar-fill color-5" style="width:22.2%"></div></div>
+            <span class="bar-percent">22.2% <span class="bar-count">(4)</span></span>
+          </div>
+        </div>
+        <div class="question-divider"></div>
+      </div>
+    </div>
+
+    <!-- Q5: 리커트 척도 -->
+    <div class="question-card">
+      <div class="question-type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        만족도
+      </div>
+      <div class="question-header">
+        <div class="question-title">세미나 발표 자료의 이해도는 어느 정도였나요?</div>
+        <button class="copy-chart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          차트 복사
+        </button>
+      </div>
+      <div class="question-meta">응답 18개</div>
+      <div class="question-body">
+        <div class="likert-chart">
+          <div class="likert-avg">
+            <span class="score">3.8</span>
+            <span class="max">/ 5.0</span>
+          </div>
+          <div class="likert-bars">
+            <div class="likert-row">
+              <span class="likert-label">5 매우만족</span>
+              <div class="likert-track"><div class="likert-fill" style="width:22.2%;"></div></div>
+              <span class="likert-count">4</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">4 만족</span>
+              <div class="likert-track"><div class="likert-fill" style="width:38.9%; opacity:0.85;"></div></div>
+              <span class="likert-count">7</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">3 보통</span>
+              <div class="likert-track"><div class="likert-fill" style="width:22.2%; opacity:0.7;"></div></div>
+              <span class="likert-count">4</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">2 불만족</span>
+              <div class="likert-track"><div class="likert-fill" style="width:11.1%; opacity:0.55;"></div></div>
+              <span class="likert-count">2</span>
+            </div>
+            <div class="likert-row">
+              <span class="likert-label">1 매우불만</span>
+              <div class="likert-track"><div class="likert-fill" style="width:5.6%; opacity:0.4;"></div></div>
+              <span class="likert-count">1</span>
+            </div>
+          </div>
+        </div>
+        <div class="question-divider"></div>
+      </div>
+    </div>
+
+    <!-- Q6: 단답형 (태그 + 응답 리스트) -->
+    <div class="question-card">
+      <div class="question-type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="12" y1="14" x2="3" y2="14"/></svg>
+        단답형
+      </div>
+      <div class="question-header">
+        <div class="question-title">가장 배우고 싶은 기술 스택은 무엇인가요?</div>
+        <button class="copy-chart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          차트 복사
+        </button>
+      </div>
+      <div class="question-meta">응답 18개</div>
+      <div class="question-body">
+        <div class="short-tags">
+          <span class="short-tag popular">React <span class="tag-count">5</span></span>
+          <span class="short-tag popular">Spring Boot <span class="tag-count">4</span></span>
+          <span class="short-tag">Python <span class="tag-count">2</span></span>
+          <span class="short-tag">TypeScript <span class="tag-count">2</span></span>
+          <span class="short-tag">Docker <span class="tag-count">1</span></span>
+          <span class="short-tag">Flutter <span class="tag-count">1</span></span>
+          <span class="short-tag">Next.js <span class="tag-count">1</span></span>
+          <span class="short-tag">Kotlin <span class="tag-count">1</span></span>
+          <span class="short-tag">AWS <span class="tag-count">1</span></span>
+        </div>
+        <div class="text-responses" id="q6Responses">
+          <div class="text-response">React</div>
+          <div class="text-response">Spring Boot</div>
+          <div class="text-response">React, TypeScript</div>
+          <div class="text-response">Python</div>
+          <div class="text-response">Spring Boot</div>
+        </div>
+        <button class="responses-toggle" onclick="toggleResponses('q6Hidden')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          나머지 13개 응답 보기
+        </button>
+        <div class="hidden-responses" id="q6Hidden">
+          <div class="text-response">React</div>
+          <div class="text-response">Docker</div>
+          <div class="text-response">Flutter</div>
+          <div class="text-response">React</div>
+          <div class="text-response">Spring Boot</div>
+          <div class="text-response">Next.js</div>
+          <div class="text-response">TypeScript</div>
+          <div class="text-response">Python</div>
+          <div class="text-response">React</div>
+          <div class="text-response">Kotlin</div>
+          <div class="text-response">Spring Boot</div>
+          <div class="text-response">AWS</div>
+          <div class="text-response">React</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q7: 장문형 서술 -->
+    <div class="question-card">
+      <div class="question-type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="15" y1="18" x2="3" y2="18"/></svg>
+        장문형
+      </div>
+      <div class="question-header">
+        <div class="question-title">세미나에 대한 자유로운 후기 및 건의사항을 남겨주세요.</div>
+        <button class="copy-chart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          차트 복사
+        </button>
+      </div>
+      <div class="question-meta">응답 15개</div>
+      <div class="question-body">
+        <div class="text-responses" id="q7Responses">
+          <div class="text-response">웹 프론트엔드 세션이 특히 좋았습니다. 실제 코드를 보여주면서 설명해줘서 이해가 잘 됐어요. 다음에도 이런 형식으로 진행되면 좋겠습니다.</div>
+          <div class="text-response">발표 시간이 조금 짧았던 것 같아요. 질의응답 시간을 좀 더 늘려주시면 좋을 것 같습니다.</div>
+          <div class="text-response">각 세션별로 난이도가 달라서 좋았습니다. 입문자용 세션과 중급자용 세션을 나눠서 진행하면 더 집중할 수 있을 것 같아요.</div>
+          <div class="text-response">백엔드 세션에서 REST API 설계 원칙을 알려준 부분이 좋았습니다. 실제 프로젝트에 바로 적용해볼 수 있을 것 같아요.</div>
+          <div class="text-response">전체적으로 만족스러웠지만 자료가 사전에 공유되었으면 예습할 수 있어서 더 좋았을 것 같습니다.</div>
+        </div>
+        <button class="responses-toggle" onclick="toggleResponses('q7Hidden')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          나머지 10개 응답 보기
+        </button>
+        <div class="hidden-responses" id="q7Hidden">
+          <div class="text-response">모바일 앱 세션 발표자분이 설명을 너무 잘해주셨어요. Flutter와 React Native 비교가 인상적이었습니다.</div>
+          <div class="text-response">세미나 장소가 조금 좁았습니다. 다음에는 더 큰 강의실에서 했으면 좋겠어요.</div>
+          <div class="text-response">좋은 세미나 감사합니다! 동아리 활동에 대한 기대가 커졌습니다.</div>
+          <div class="text-response">AI 세션 내용이 좀 어려웠지만 관심 있는 분야라 재미있었습니다. 기초부터 다뤄주는 스터디가 있으면 참여하고 싶어요.</div>
+          <div class="text-response">네트워킹 시간이 있었으면 좋겠습니다. 같은 분야에 관심 있는 사람들과 이야기 나눌 기회가 부족했어요.</div>
+          <div class="text-response">실습 위주 세미나도 해주셨으면 좋겠어요. 이론만으로는 기억에 잘 안 남는 것 같습니다.</div>
+          <div class="text-response">전반적으로 매우 만족합니다. 정기적으로 이런 세미나를 열어주세요!</div>
+          <div class="text-response">Git 관련 세미나도 추가되면 좋겠습니다. 협업 도구 사용법이 궁금해요.</div>
+          <div class="text-response">마이크 음질이 좀 아쉬웠습니다. 뒷자리에서는 소리가 잘 안 들렸어요.</div>
+          <div class="text-response">다양한 분야를 한 번에 접할 수 있어서 좋았습니다. 감사합니다.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 푸터 -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">IGRUS</div>
+        <div class="footer-desc">인하대학교 IT 동아리</div>
+        <div class="footer-address">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          인천광역시 미추홀구 인하로 100, 5호관 동쪽 지하 003
+        </div>
+      </div>
+      <div class="footer-right">
+        <div class="footer-section-title">연락처</div>
+        <div class="footer-contact">
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            회장 구주원 : 010-6587-7550
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            부회장 신연우 : 010-2290-3343
+          </a>
+        </div>
+        <div class="footer-social">
+          <div class="footer-social-title">소셜 미디어</div>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 IGRUS. All rights reserved.</span>
+      <div class="footer-links">
+        <a href="#">개인정보처리방침</a>
+        <a href="#">이용약관</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 다크모드 FAB -->
+  <button class="theme-fab" onclick="toggleTheme()">
+    <svg id="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <script>
+    /* 응답 더보기 토글 */
+    function toggleResponses(id) {
+      const el = document.getElementById(id);
+      const btn = el.previousElementSibling;
+      const isOpen = el.classList.contains('show');
+      el.classList.toggle('show');
+      if (isOpen) {
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg> ' + btn.textContent.trim();
+      } else {
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="6 15 12 9 18 15"/></svg> 접기';
+      }
+    }
+
+    /* 다크모드 토글 */
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('theme-icon-light').style.display = isDark ? 'none' : '';
+      document.getElementById('theme-icon-dark').style.display = isDark ? '' : 'none';
+    }
+  </script>
+</body>
+</html>
