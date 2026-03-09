@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS — 게시글</title>
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    button { font-family: 'Inter', sans-serif; }
+
+    /* ===== 사이드바 ===== */
+    .sidebar {
+      width: 240px;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 40;
+      transition: transform 0.25s ease;
+    }
+
+    .sidebar-logo {
+      padding: var(--s5);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.025em;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--s2) var(--s3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s1);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      padding: var(--s3) var(--s4);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      border-radius: var(--r2);
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      border: none;
+      background: none;
+      text-align: left;
+      width: 100%;
+    }
+
+    .nav-item:hover {
+      background: var(--muted);
+      color: var(--foreground);
+    }
+
+    .nav-item.active {
+      background: var(--accent);
+      color: var(--accent-foreground);
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: var(--s2);
+      bottom: var(--s2);
+      width: 4px;
+      background: var(--primary);
+      border-radius: var(--r-full);
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-bottom {
+      padding: var(--s3);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s1);
+    }
+
+    .sidebar-bottom .nav-item {
+      font-size: 13px;
+    }
+
+    /* ===== 메인 래퍼 ===== */
+    .main-wrapper {
+      flex: 1;
+      margin-left: 240px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ===== 모바일 헤더 ===== */
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--s4);
+      height: 56px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .hamburger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: none;
+      color: var(--foreground);
+      cursor: pointer;
+      border-radius: var(--r2);
+    }
+
+    .hamburger:hover {
+      background: var(--muted);
+    }
+
+    .hamburger svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .mobile-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* 모바일 백드롭 */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 35;
+    }
+
+    .sidebar-backdrop.show {
+      display: block;
+    }
+
+    /* ===== 콘텐츠 영역 ===== */
+    .content {
+      flex: 1;
+      padding: var(--s7) var(--s6);
+      max-width: 80rem;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ===== 뒤로가기 링크 ===== */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s1);
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted-foreground);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: var(--s1) 0;
+      margin-bottom: var(--s5);
+      transition: color 0.15s;
+    }
+
+    .back-link:hover {
+      color: var(--foreground);
+    }
+
+    /* ===== 게시글 헤더 ===== */
+    .post-header {
+      margin-bottom: var(--s6);
+    }
+
+    .post-category {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      margin-bottom: var(--s2);
+    }
+
+    .post-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--foreground);
+      line-height: 1.3;
+      margin-bottom: var(--s3);
+    }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      font-size: 14px;
+      color: var(--muted-foreground);
+      padding-bottom: var(--s5);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .post-meta-author {
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    .post-meta-sep {
+      margin: 0 var(--s2);
+      color: var(--muted-foreground);
+      opacity: 0.4;
+    }
+
+    /* ===== 게시글 본문 ===== */
+    .post-body {
+      max-width: 720px;
+      padding: var(--s6) 0;
+    }
+
+    .post-body p {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--foreground);
+      margin-bottom: var(--s4);
+    }
+
+    .post-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .post-body .subtitle {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-top: var(--s6);
+      margin-bottom: var(--s3);
+    }
+
+    .post-body ul {
+      list-style: disc;
+      padding-left: var(--s5);
+      margin-bottom: var(--s4);
+    }
+
+    .post-body ul li {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--foreground);
+      margin-bottom: var(--s1);
+    }
+
+    .post-body ol {
+      list-style: decimal;
+      padding-left: var(--s5);
+      margin-bottom: var(--s4);
+    }
+
+    .post-body ol li {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--foreground);
+      margin-bottom: var(--s1);
+    }
+
+    /* ===== 첨부파일 ===== */
+    .attachments {
+      border-top: 1px solid var(--border);
+      padding-top: var(--s5);
+      margin-bottom: var(--s6);
+    }
+
+    .attachments-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--s3);
+    }
+
+    .attachment-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s3);
+      border-radius: var(--r2);
+      cursor: pointer;
+      transition: background 0.15s;
+      font-size: 14px;
+      color: var(--foreground);
+      margin-bottom: var(--s1);
+      width: 100%;
+    }
+
+    .attachment-item:hover {
+      background: var(--muted);
+    }
+
+    .attachment-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--muted-foreground);
+    }
+
+    .attachment-name {
+      font-weight: 500;
+    }
+
+    .attachment-size {
+      color: var(--muted-foreground);
+      font-size: 13px;
+      margin-left: var(--s1);
+    }
+
+    /* ===== 하단 액션 바 ===== */
+    .action-bar {
+      border-top: 1px solid var(--border);
+      padding-top: var(--s4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--s7);
+    }
+
+    .action-bar-left,
+    .action-bar-right {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s2) var(--s3);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      background: none;
+      border: none;
+      border-radius: var(--r2);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-ghost:hover {
+      background: var(--muted);
+      color: var(--foreground);
+    }
+
+    .btn-destructive {
+      color: var(--destructive);
+    }
+
+    .btn-destructive:hover {
+      color: var(--destructive);
+      background: rgba(220, 53, 69, 0.08);
+    }
+
+    .dark .btn-destructive:hover {
+      background: rgba(220, 53, 69, 0.15);
+    }
+
+    /* ===== 댓글 섹션 ===== */
+    .comments-section {
+      margin-bottom: var(--s7);
+    }
+
+    .comments-title {
+      display: flex;
+      align-items: baseline;
+      gap: var(--s2);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: var(--s5);
+    }
+
+    .comments-count {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--muted-foreground);
+    }
+
+    /* 댓글 입력 */
+    .comment-form {
+      margin-bottom: var(--s6);
+    }
+
+    .comment-textarea {
+      width: 100%;
+      min-height: 88px;
+      padding: var(--s3) var(--s4);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--foreground);
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .comment-textarea::placeholder {
+      color: var(--muted-foreground);
+    }
+
+    .comment-textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .comment-form-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: var(--s2);
+    }
+
+    .btn-primary-sm {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--s2) var(--s4);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary-foreground);
+      background: var(--primary);
+      border: none;
+      border-radius: var(--r2);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary-sm:hover {
+      opacity: 0.9;
+    }
+
+    /* 댓글 목록 */
+    .comment-list {
+      list-style: none;
+    }
+
+    .comment-item {
+      padding: var(--s4) 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: var(--s2);
+    }
+
+    .comment-author {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    .comment-author-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-left: var(--s2);
+      padding: 1px var(--s2);
+      border: 1px solid var(--primary);
+      border-radius: var(--r-full);
+      line-height: 1.5;
+    }
+
+    .comment-sep {
+      margin: 0 var(--s2);
+      color: var(--muted-foreground);
+      opacity: 0.4;
+    }
+
+    .comment-date {
+      font-size: 13px;
+      color: var(--muted-foreground);
+    }
+
+    .comment-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--foreground);
+      margin-bottom: var(--s2);
+    }
+
+    .comment-reply-btn {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: var(--s1) 0;
+      transition: color 0.15s;
+    }
+
+    .comment-reply-btn:hover {
+      color: var(--foreground);
+    }
+
+    /* ===== 푸터 ===== */
+    .footer {
+      margin-top: auto;
+      padding: var(--s5) var(--s6);
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-text {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      text-align: center;
+    }
+
+    /* ===== 다크모드 FAB ===== */
+    .theme-fab {
+      position: fixed;
+      bottom: var(--s5);
+      right: var(--s5);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-full);
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 50;
+      transition: background 0.15s;
+    }
+
+    .theme-fab:hover {
+      background: var(--muted);
+    }
+
+    .theme-fab svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ===== 반응형 ===== */
+
+    @media (max-width: 991px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-wrapper {
+        margin-left: 0;
+      }
+
+      .mobile-header {
+        display: flex;
+      }
+
+      .content {
+        padding: var(--s5) var(--s4);
+      }
+    }
+
+    @media (min-width: 992px) {
+      .mobile-header {
+        display: none;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .post-title {
+        font-size: 22px;
+      }
+
+      .post-body {
+        max-width: 100%;
+      }
+
+      .action-bar {
+        flex-direction: column;
+        gap: var(--s3);
+        align-items: stretch;
+      }
+
+      .action-bar-left,
+      .action-bar-right {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 575px) {
+      .content {
+        padding: var(--s4) var(--s3);
+      }
+
+      .post-title {
+        font-size: 20px;
+      }
+
+      .post-meta {
+        flex-wrap: wrap;
+      }
+    }
+
+    /* ===== 접근성 ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+
+    /* ===== 스크롤바 ===== */
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(3, 166, 158, 0.5); border-radius: var(--r-full); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(3, 166, 158, 0.7); }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(102, 203, 197, 0.5); }
+    .dark ::-webkit-scrollbar-thumb:hover { background: rgba(102, 203, 197, 0.7); }
+    html { scrollbar-width: thin; scrollbar-color: rgba(3, 166, 158, 0.5) transparent; }
+  </style>
+</head>
+<body>
+
+  <!-- 모바일 백드롭 -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+  <!-- 사이드바 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">IGRUS</div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        홈
+      </a>
+      <a class="nav-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        게시판
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        행사
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        문의
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="nav-item" onclick="toggleTheme()">
+        <svg id="sidebar-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="sidebar-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        테마
+      </button>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        마이페이지
+      </a>
+    </div>
+  </aside>
+
+  <!-- 메인 영역 -->
+  <div class="main-wrapper">
+
+    <!-- 모바일 헤더 -->
+    <div class="mobile-header">
+      <button class="hamburger" onclick="openSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="mobile-logo">IGRUS</span>
+      <div style="width:40px;"></div>
+    </div>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="content">
+
+      <!-- 뒤로가기 -->
+      <a href="#" class="back-link">&larr; 목록으로</a>
+
+      <!-- 게시글 헤더 -->
+      <div class="post-header">
+        <div class="post-category">공지</div>
+        <h1 class="post-title">2026학년도 1학기 정기 모집 안내</h1>
+        <div class="post-meta">
+          <span class="post-meta-author">구주원</span>
+          <span class="post-meta-sep">&middot;</span>
+          <span>2026.03.08</span>
+          <span class="post-meta-sep">&middot;</span>
+          <span>조회 142</span>
+        </div>
+      </div>
+
+      <!-- 게시글 본문 -->
+      <div class="post-body">
+        <p>안녕하세요, IGRUS 회장 구주원입니다.</p>
+        <p>2026학년도 1학기 정기 모집을 아래와 같이 진행합니다.</p>
+
+        <div class="subtitle">모집 기간</div>
+        <p>2026년 3월 10일(월) ~ 3월 21일(금)</p>
+
+        <div class="subtitle">모집 대상</div>
+        <p>인하대학교 재학생 누구나 (전공 무관)</p>
+
+        <div class="subtitle">지원 방법</div>
+        <ol>
+          <li>IGRUS 웹사이트에서 가입 신청</li>
+          <li>간단한 자기소개서 작성</li>
+          <li>면접 일정 개별 안내</li>
+        </ol>
+
+        <div class="subtitle">활동 내용</div>
+        <ul>
+          <li>주 1회 정기 스터디 (프론트엔드/백엔드/앱 개발)</li>
+          <li>월 1회 세미나 및 네트워킹</li>
+          <li>학기별 팀 프로젝트 진행</li>
+          <li>해커톤 및 대회 참가 지원</li>
+        </ul>
+
+        <p>문의 사항은 게시판이나 카카오톡 오픈채팅방으로 남겨주세요.<br />많은 관심 부탁드립니다. 감사합니다!</p>
+      </div>
+
+      <!-- 첨부파일 -->
+      <div class="attachments">
+        <div class="attachments-label">첨부파일</div>
+        <a href="#" class="attachment-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="attachment-name">IGRUS_2026_모집안내.pdf</span>
+          <span class="attachment-size">(2.4 MB)</span>
+        </a>
+        <a href="#" class="attachment-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="attachment-name">지원서_양식.docx</span>
+          <span class="attachment-size">(156 KB)</span>
+        </a>
+      </div>
+
+      <!-- 하단 액션 바 -->
+      <div class="action-bar">
+        <div class="action-bar-left">
+          <button class="btn-ghost">&larr; 이전 글</button>
+          <button class="btn-ghost">다음 글 &rarr;</button>
+        </div>
+        <div class="action-bar-right">
+          <button class="btn-ghost">수정</button>
+          <button class="btn-ghost btn-destructive">삭제</button>
+        </div>
+      </div>
+
+      <!-- 댓글 섹션 -->
+      <div class="comments-section">
+        <div class="comments-title">
+          댓글
+          <span class="comments-count">3</span>
+        </div>
+
+        <!-- 댓글 입력 -->
+        <div class="comment-form">
+          <textarea class="comment-textarea" placeholder="댓글을 입력하세요..." rows="3"></textarea>
+          <div class="comment-form-actions">
+            <button class="btn-primary-sm">등록</button>
+          </div>
+        </div>
+
+        <!-- 댓글 목록 -->
+        <ul class="comment-list">
+          <li class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">김민수</span>
+              <span class="comment-sep">&middot;</span>
+              <span class="comment-date">2026.03.08 14:23</span>
+            </div>
+            <div class="comment-body">1학기 모집 기다리고 있었습니다! 지원서 양식이 작년과 동일한가요?</div>
+            <button class="comment-reply-btn">답글</button>
+          </li>
+          <li class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">구주원</span>
+              <span class="comment-author-badge">작성자</span>
+              <span class="comment-sep">&middot;</span>
+              <span class="comment-date">2026.03.08 15:01</span>
+            </div>
+            <div class="comment-body">네, 작년과 동일한 양식입니다. 첨부파일에서 다운로드해 주세요!</div>
+            <button class="comment-reply-btn">답글</button>
+          </li>
+          <li class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">이서연</span>
+              <span class="comment-sep">&middot;</span>
+              <span class="comment-date">2026.03.09 09:15</span>
+            </div>
+            <div class="comment-body">면접은 대면으로 진행되나요, 비대면도 가능한가요?</div>
+            <button class="comment-reply-btn">답글</button>
+          </li>
+        </ul>
+      </div>
+
+    </main>
+
+    <!-- 간소화 푸터 -->
+    <footer class="footer">
+      <p class="footer-text">&copy; 2026 IGRUS &middot; 인하대학교 IT 동아리</p>
+    </footer>
+
+  </div>
+
+  <!-- 다크모드 FAB -->
+  <button class="theme-fab" onclick="toggleTheme()">
+    <svg id="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <script>
+    /* 다크모드 토글 */
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('theme-icon-light').style.display = isDark ? 'none' : '';
+      document.getElementById('theme-icon-dark').style.display = isDark ? '' : 'none';
+      document.getElementById('sidebar-sun').style.display = isDark ? 'none' : '';
+      document.getElementById('sidebar-moon').style.display = isDark ? '' : 'none';
+    }
+
+    /* 사이드바 토글 (모바일) */
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarBackdrop').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarBackdrop').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  </script>
+</body>
+</html>
