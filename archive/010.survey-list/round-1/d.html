@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>신청자 관리 - 리스트 (구글 시트 스타일)</title>
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== 기본 스타일 ===== */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== 상단 헤더 영역 ===== */
+    .page-header {
+      padding: var(--s5) var(--s6);
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      color: var(--muted-foreground);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: var(--s4);
+      transition: color 0.15s;
+    }
+    .back-link:hover {
+      color: var(--primary);
+    }
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .page-title-row {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      margin-bottom: var(--s1);
+    }
+    .page-title-row svg {
+      width: 28px;
+      height: 28px;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .page-subtitle-row {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      margin-top: var(--s2);
+    }
+    .event-name {
+      font-size: 16px;
+      color: var(--muted-foreground);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--s2);
+      border-radius: var(--r1);
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--accent);
+      color: var(--accent-foreground);
+    }
+    .count-info {
+      font-size: 14px;
+      color: var(--muted-foreground);
+      font-weight: 500;
+    }
+
+    /* ===== 탭 ===== */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-top: var(--s5);
+    }
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s4);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      cursor: pointer;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+    .tab:hover {
+      color: var(--foreground);
+    }
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+    .tab svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ===== 메인 콘텐츠 ===== */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ===== 툴바 ===== */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--s3) var(--s6);
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      gap: var(--s3);
+      flex-wrap: wrap;
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+
+    /* 필터 드롭다운 */
+    .filter-dropdown {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: var(--background);
+      color: var(--foreground);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .filter-dropdown:hover {
+      border-color: var(--primary);
+    }
+    .filter-dropdown svg {
+      width: 14px;
+      height: 14px;
+      color: var(--muted-foreground);
+    }
+
+    /* 검색바 */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: var(--background);
+      min-width: 220px;
+    }
+    .search-bar svg {
+      width: 14px;
+      height: 14px;
+      color: var(--muted-foreground);
+      flex-shrink: 0;
+    }
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: var(--foreground);
+      width: 100%;
+    }
+    .search-bar input::placeholder {
+      color: var(--muted-foreground);
+    }
+    .search-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(3, 166, 158, 0.15);
+    }
+
+    /* 버튼들 */
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s3);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: transparent;
+      color: var(--foreground);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .btn-outline svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .btn-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ===== 일괄 작업 바 ===== */
+    .bulk-bar {
+      display: none;
+      align-items: center;
+      gap: var(--s4);
+      padding: var(--s3) var(--s6);
+      background: var(--accent);
+      border-bottom: 1px solid var(--primary);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent-foreground);
+    }
+    .bulk-bar.show {
+      display: flex;
+    }
+    .bulk-bar .bulk-count {
+      font-weight: 600;
+    }
+    .bulk-bar .bulk-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+    }
+    .bulk-bar .bulk-actions span {
+      padding: var(--s1) var(--s3);
+      border-radius: var(--r1);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .bulk-bar .bulk-actions span:hover {
+      background: rgba(3, 166, 158, 0.15);
+    }
+    .bulk-bar .bulk-actions .bulk-approve {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .bulk-bar .bulk-actions .bulk-reject {
+      color: var(--destructive);
+      font-weight: 600;
+    }
+    .bulk-bar .bulk-actions .bulk-deselect {
+      color: var(--muted-foreground);
+    }
+    .bulk-divider {
+      color: var(--muted-foreground);
+    }
+
+    /* ===== 스프레드시트 래퍼 ===== */
+    .sheet-wrapper {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+
+    /* 커스텀 스크롤바 */
+    .sheet-wrapper::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    .sheet-wrapper::-webkit-scrollbar-track {
+      background: var(--muted);
+    }
+    .sheet-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(3, 166, 158, 0.5);
+      border-radius: var(--r-full);
+      border: 2px solid var(--muted);
+    }
+    .sheet-wrapper::-webkit-scrollbar-thumb:hover {
+      background: rgba(3, 166, 158, 0.7);
+    }
+    .sheet-wrapper::-webkit-scrollbar-corner {
+      background: var(--muted);
+    }
+    .dark .sheet-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(102, 203, 197, 0.5);
+    }
+    .dark .sheet-wrapper::-webkit-scrollbar-thumb:hover {
+      background: rgba(102, 203, 197, 0.7);
+    }
+
+    /* ===== 스프레드시트 테이블 ===== */
+    .sheet-table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .sheet-table th,
+    .sheet-table td {
+      border: 1px solid var(--border);
+      padding: var(--s2) var(--s3);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    /* 헤더 행 */
+    .sheet-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .sheet-table th {
+      background: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--secondary-foreground);
+      user-select: none;
+    }
+
+    /* 컬럼 리사이즈 힌트 */
+    .sheet-table th::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 25%;
+      height: 50%;
+      width: 2px;
+      background: transparent;
+      cursor: col-resize;
+      transition: background 0.15s;
+    }
+    .sheet-table th:hover::after {
+      background: var(--primary);
+    }
+
+    /* 데이터 행 */
+    .sheet-table tbody tr {
+      background: var(--card);
+      transition: background 0.1s;
+    }
+    .sheet-table tbody tr:hover {
+      background: var(--accent);
+    }
+    .sheet-table tbody tr.selected {
+      background: var(--accent);
+    }
+    .sheet-table tbody tr.selected td:first-child::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--primary);
+    }
+
+    /* ===== 고정 열 (sticky left) ===== */
+    /* 체크박스 열 */
+    .col-check {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      width: 40px;
+      min-width: 40px;
+      text-align: center !important;
+    }
+    thead .col-check {
+      z-index: 30;
+      background: var(--muted);
+    }
+    tbody .col-check {
+      background: var(--card);
+    }
+    tbody tr:hover .col-check {
+      background: var(--accent);
+    }
+    tbody tr.selected .col-check {
+      background: var(--accent);
+    }
+
+    /* 행 번호 열 */
+    .col-num {
+      position: sticky;
+      left: 40px;
+      z-index: 10;
+      width: 28px;
+      min-width: 28px;
+      text-align: center !important;
+      color: var(--muted-foreground);
+      font-size: 12px;
+      background: var(--muted);
+    }
+    thead .col-num {
+      z-index: 30;
+    }
+    tbody .col-num {
+      background: var(--muted);
+    }
+
+    /* 이름 열 */
+    .col-name {
+      position: sticky;
+      left: 68px;
+      z-index: 10;
+      width: 120px;
+      min-width: 120px;
+      font-weight: 600;
+    }
+    thead .col-name {
+      z-index: 30;
+      background: var(--muted);
+    }
+    tbody .col-name {
+      background: var(--card);
+    }
+    tbody tr:hover .col-name {
+      background: var(--accent);
+    }
+    tbody tr.selected .col-name {
+      background: var(--accent);
+    }
+    /* 고정 열 그림자 */
+    .col-name::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+      pointer-events: none;
+    }
+    .dark .col-name::after {
+      background: linear-gradient(to right, rgba(0,0,0,0.2), transparent);
+    }
+
+    /* 학번 열 */
+    .col-sid {
+      width: 100px;
+      min-width: 100px;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 이메일 열 */
+    .col-email {
+      width: 200px;
+      min-width: 200px;
+    }
+
+    /* 상태 열 */
+    .col-status {
+      width: 80px;
+      min-width: 80px;
+    }
+
+    /* 신청일 열 */
+    .col-date {
+      width: 100px;
+      min-width: 100px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Q 설문 열 */
+    .col-q {
+      width: 200px;
+      min-width: 200px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Q 셀 hover 확장 */
+    .cell-expandable {
+      position: relative;
+      cursor: default;
+    }
+    .cell-expandable .cell-content {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+    }
+    .cell-expandable:hover .cell-content {
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      z-index: 15;
+      white-space: normal;
+      background: var(--card);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 0 0 1px var(--primary);
+      padding: var(--s2) var(--s3);
+      border-radius: var(--r1);
+      max-width: 400px;
+      min-width: 200px;
+      overflow: visible;
+    }
+    .dark .cell-expandable:hover .cell-content {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px var(--primary);
+    }
+
+    /* ===== 상태 배지 ===== */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s1);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-approved .status-dot { background: var(--primary); }
+    .status-approved { color: var(--primary); }
+    .status-pending .status-dot { background: #F59E0B; }
+    .status-pending { color: #F59E0B; }
+    .dark .status-pending .status-dot { background: #FBBF24; }
+    .dark .status-pending { color: #FBBF24; }
+    .status-cancelled .status-dot { background: var(--muted-foreground); }
+    .status-cancelled { color: var(--muted-foreground); }
+
+    /* ===== 체크박스 ===== */
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      background: var(--background);
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      vertical-align: middle;
+    }
+    .checkbox:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .checkbox:checked::after {
+      content: '';
+      display: block;
+      width: 10px;
+      height: 10px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2.5-2.5a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
+    .checkbox:hover {
+      border-color: var(--primary);
+    }
+
+    /* ===== 하단 상태 바 ===== */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--s2) var(--s6);
+      border-top: 1px solid var(--border);
+      background: var(--muted);
+      font-size: 12px;
+      color: var(--muted-foreground);
+      flex-shrink: 0;
+    }
+    .status-bar-left {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+
+    /* ===== 다크모드 FAB ===== */
+    .dark-mode-fab {
+      position: fixed;
+      bottom: var(--s5);
+      right: var(--s5);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+    .dark-mode-fab:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+      transform: scale(1.05);
+    }
+    .dark-mode-fab svg {
+      width: 20px;
+      height: 20px;
+      color: var(--foreground);
+    }
+    .dark-mode-fab .icon-moon { display: block; }
+    .dark-mode-fab .icon-sun { display: none; }
+    .dark .dark-mode-fab .icon-moon { display: none; }
+    .dark .dark-mode-fab .icon-sun { display: block; }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 767px) {
+      .page-header {
+        padding: var(--s4) var(--s4);
+      }
+      .toolbar {
+        padding: var(--s3) var(--s4);
+      }
+      .status-bar {
+        padding: var(--s2) var(--s4);
+      }
+      .bulk-bar {
+        padding: var(--s3) var(--s4);
+        flex-wrap: wrap;
+      }
+      .search-bar {
+        min-width: 160px;
+      }
+      .page-title {
+        font-size: 22px;
+      }
+    }
+
+    /* ===== prefers-reduced-motion ===== */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 헤더 -->
+  <div class="page-header">
+    <a href="#" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      행사 목록으로 돌아가기
+    </a>
+
+    <div class="page-title-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <h1 class="page-title">신청자 관리</h1>
+    </div>
+
+    <div class="page-subtitle-row">
+      <span class="event-name">개발 분야 소개 세미나</span>
+      <span class="badge">선발제</span>
+      <span class="count-info">10 / 30명</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        리스트
+      </button>
+      <button class="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        대시보드
+      </button>
+      <button class="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        설문 확인
+      </button>
+    </div>
+  </div>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="main-content">
+    <!-- 툴바 -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="filter-dropdown">
+          전체 상태
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="이름, 학번, 이메일 검색..." />
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          CSV 내보내기
+        </button>
+        <button class="btn-icon" title="열 표시/숨김">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 일괄 작업 바 -->
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-count"><span id="bulkCount">0</span>명 선택됨</span>
+      <span class="bulk-divider">—</span>
+      <div class="bulk-actions">
+        <span class="bulk-approve">일괄 승인</span>
+        <span class="bulk-divider">|</span>
+        <span class="bulk-reject">일괄 거절</span>
+        <span class="bulk-divider">|</span>
+        <span class="bulk-deselect" onclick="deselectAll()">선택 해제</span>
+      </div>
+    </div>
+
+    <!-- 스프레드시트 -->
+    <div class="sheet-wrapper">
+      <table class="sheet-table">
+        <thead>
+          <tr>
+            <th class="col-check"><input type="checkbox" class="checkbox" id="selectAll" onchange="toggleAll(this)" /></th>
+            <th class="col-num">#</th>
+            <th class="col-name">이름</th>
+            <th class="col-sid">학번</th>
+            <th class="col-email">이메일</th>
+            <th class="col-status">상태</th>
+            <th class="col-date">신청일</th>
+            <th class="col-q">Q1. 참여 동기</th>
+            <th class="col-q">Q2. 개발 경험</th>
+            <th class="col-q">Q3. 관심 분야</th>
+            <th class="col-q">Q4. 가능 시간대</th>
+            <th class="col-q">Q5. 하고 싶은 말</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">1</td>
+            <td class="col-name">관리자</td>
+            <td class="col-sid">12345678</td>
+            <td class="col-email">admin@inha.edu</td>
+            <td class="col-status"><span class="status status-cancelled"><span class="status-dot"></span>취소</span></td>
+            <td class="col-date">03.08</td>
+            <td class="col-q cell-expandable"><span class="cell-content">동아리 운영 테스트</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">5년 이상</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">풀스택</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">평일 저녁</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">테스트 계정입니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">2</td>
+            <td class="col-name">장지동</td>
+            <td class="col-sid">12241494</td>
+            <td class="col-email">sestos57696@inha.edu</td>
+            <td class="col-status"><span class="status status-approved"><span class="status-dot"></span>승인</span></td>
+            <td class="col-date">03.08</td>
+            <td class="col-q cell-expandable"><span class="cell-content">개발 실력 향상</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">1~2년</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">백엔드</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">주말 오후</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">스프링 스터디 참여하고 싶습니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">3</td>
+            <td class="col-name">김민수</td>
+            <td class="col-sid">12230101</td>
+            <td class="col-email">minsu.kim@inha.edu</td>
+            <td class="col-status"><span class="status status-pending"><span class="status-dot"></span>대기</span></td>
+            <td class="col-date">03.07</td>
+            <td class="col-q cell-expandable"><span class="cell-content">프로젝트 경험 쌓기</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">6개월 미만</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">프론트엔드</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">평일 저녁, 주말</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">React를 배우고 싶어서 지원합니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">4</td>
+            <td class="col-name">이서연</td>
+            <td class="col-sid">12230215</td>
+            <td class="col-email">seoyeon.lee@inha.edu</td>
+            <td class="col-status"><span class="status status-approved"><span class="status-dot"></span>승인</span></td>
+            <td class="col-date">03.07</td>
+            <td class="col-q cell-expandable"><span class="cell-content">네트워킹과 협업</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">1~2년</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">프론트엔드</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">화/목 저녁</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">디자인 시스템에 관심이 많습니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">5</td>
+            <td class="col-name">박지훈</td>
+            <td class="col-sid">12240332</td>
+            <td class="col-email">jihun.park@inha.edu</td>
+            <td class="col-status"><span class="status status-pending"><span class="status-dot"></span>대기</span></td>
+            <td class="col-date">03.06</td>
+            <td class="col-q cell-expandable"><span class="cell-content">포트폴리오 준비</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">6개월~1년</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">앱 개발</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">수/금 오후</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">Flutter로 앱을 만들어보고 싶습니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">6</td>
+            <td class="col-name">정하은</td>
+            <td class="col-sid">12220448</td>
+            <td class="col-email">haeun.jung@inha.edu</td>
+            <td class="col-status"><span class="status status-approved"><span class="status-dot"></span>승인</span></td>
+            <td class="col-date">03.06</td>
+            <td class="col-q cell-expandable"><span class="cell-content">실무 경험</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">2~3년</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">백엔드</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">평일 저녁</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">MSA 아키텍처 스터디 희망합니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">7</td>
+            <td class="col-name">최예준</td>
+            <td class="col-sid">12250512</td>
+            <td class="col-email">yejun.choi@inha.edu</td>
+            <td class="col-status"><span class="status status-pending"><span class="status-dot"></span>대기</span></td>
+            <td class="col-date">03.05</td>
+            <td class="col-q cell-expandable"><span class="cell-content">개발 입문</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">없음</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">프론트엔드</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">주말 전체</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">비전공자인데 코딩 배우고 싶습니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">8</td>
+            <td class="col-name">윤도현</td>
+            <td class="col-sid">12230678</td>
+            <td class="col-email">dohyun.yoon@inha.edu</td>
+            <td class="col-status"><span class="status status-pending"><span class="status-dot"></span>대기</span></td>
+            <td class="col-date">03.05</td>
+            <td class="col-q cell-expandable"><span class="cell-content">팀 프로젝트</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">1~2년</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">풀스택</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">월/수/금 저녁</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">해커톤 같이 나갈 팀원 찾고 있습니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">9</td>
+            <td class="col-name">한소희</td>
+            <td class="col-sid">12240789</td>
+            <td class="col-email">sohee.han@inha.edu</td>
+            <td class="col-status"><span class="status status-approved"><span class="status-dot"></span>승인</span></td>
+            <td class="col-date">03.04</td>
+            <td class="col-q cell-expandable"><span class="cell-content">DevOps 학습</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">2~3년</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">인프라/DevOps</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">화/목 오후</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">CI/CD 파이프라인 구축 경험 공유하고 싶습니다</span></td>
+          </tr>
+          <tr>
+            <td class="col-check"><input type="checkbox" class="checkbox row-check" onchange="updateBulk()" /></td>
+            <td class="col-num">10</td>
+            <td class="col-name">송유진</td>
+            <td class="col-sid">12210901</td>
+            <td class="col-email">yujin.song@inha.edu</td>
+            <td class="col-status"><span class="status status-cancelled"><span class="status-dot"></span>취소</span></td>
+            <td class="col-date">03.03</td>
+            <td class="col-q cell-expandable"><span class="cell-content">대회 준비</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">3년 이상</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">AI/ML</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">주말 오전</span></td>
+            <td class="col-q cell-expandable"><span class="cell-content">졸업 준비로 시간이 안 맞아 취소합니다</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 하단 상태 바 -->
+    <div class="status-bar">
+      <div class="status-bar-left">
+        <span>10명의 신청자</span>
+        <span>·</span>
+        <span>마지막 업데이트 2026.03.09</span>
+      </div>
+      <div>
+        <span>승인 4 · 대기 4 · 취소 2</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 다크모드 FAB -->
+  <button class="dark-mode-fab" onclick="toggleDark()" title="다크모드 전환">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+
+  <script>
+    // 다크모드 토글
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    // 전체 선택
+    function toggleAll(el) {
+      const checks = document.querySelectorAll('.row-check');
+      checks.forEach(c => { c.checked = el.checked; });
+      updateBulk();
+      updateRowSelection();
+    }
+
+    // 일괄 바 업데이트
+    function updateBulk() {
+      const checks = document.querySelectorAll('.row-check:checked');
+      const bar = document.getElementById('bulkBar');
+      const count = document.getElementById('bulkCount');
+      count.textContent = checks.length;
+      bar.classList.toggle('show', checks.length > 0);
+      updateRowSelection();
+
+      // selectAll 상태 동기화
+      const allChecks = document.querySelectorAll('.row-check');
+      document.getElementById('selectAll').checked = checks.length === allChecks.length && checks.length > 0;
+    }
+
+    // 행 선택 스타일
+    function updateRowSelection() {
+      document.querySelectorAll('.row-check').forEach(c => {
+        c.closest('tr').classList.toggle('selected', c.checked);
+      });
+    }
+
+    // 전체 해제
+    function deselectAll() {
+      document.querySelectorAll('.row-check').forEach(c => { c.checked = false; });
+      document.getElementById('selectAll').checked = false;
+      updateBulk();
+    }
+  </script>
+</body>
+</html>

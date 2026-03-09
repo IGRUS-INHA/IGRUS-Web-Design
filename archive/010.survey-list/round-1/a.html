@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>신청자 관리 — 리스트 | IGRUS</title>
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== 페이지 고유 스타일 ===== */
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 다크모드 FAB */
+    .dark-toggle {
+      position: fixed;
+      bottom: var(--s5);
+      right: var(--s5);
+      width: 48px;
+      height: 48px;
+      border-radius: var(--r-full);
+      background: var(--card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .dark-toggle:hover {
+      background: var(--muted);
+    }
+    .dark-toggle svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--foreground);
+    }
+    .dark .dark-toggle svg.icon-sun { display: block; }
+    .dark .dark-toggle svg.icon-moon { display: none; }
+    .icon-sun { display: none; }
+    .icon-moon { display: block; }
+
+    /* 컨테이너 */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--s5) var(--s5);
+      width: 100%;
+      flex: 1;
+    }
+
+    /* 뒤로가기 */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      color: var(--muted-foreground);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: var(--s5);
+      transition: color 0.15s;
+    }
+    .back-link:hover {
+      color: var(--foreground);
+    }
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* 페이지 헤더 */
+    .page-header {
+      margin-bottom: var(--s5);
+    }
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: var(--s2);
+    }
+    .page-title svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--primary);
+      fill: none;
+      stroke-width: 1.5;
+      flex-shrink: 0;
+    }
+    .page-subtitle {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      font-size: 14px;
+      color: var(--muted-foreground);
+      flex-wrap: wrap;
+    }
+    .badge-selection {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--s3);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--accent);
+      border-radius: var(--r-full);
+    }
+    .count-label {
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    /* 밑줄 탭 */
+    .tabs {
+      display: flex;
+      gap: var(--s5);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--s5);
+    }
+    .tab-item {
+      padding: var(--s3) 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+    }
+    .tab-item:hover {
+      color: var(--foreground);
+    }
+    .tab-item.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+    .tab-item svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* 상태 필터 */
+    .status-filters {
+      display: flex;
+      align-items: center;
+      gap: var(--s4);
+      margin-bottom: var(--s4);
+      font-size: 13px;
+      color: var(--muted-foreground);
+    }
+    .status-filter {
+      cursor: pointer;
+      padding: var(--s1) 0;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      font-weight: 400;
+    }
+    .status-filter:hover {
+      color: var(--foreground);
+    }
+    .status-filter.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+    .filter-separator {
+      color: var(--border);
+      user-select: none;
+    }
+
+    /* 툴바: 검색 + 일괄작업 */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--s4);
+      min-height: 36px;
+      gap: var(--s4);
+    }
+    .bulk-bar {
+      display: none;
+      align-items: center;
+      gap: var(--s3);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--foreground);
+    }
+    .bulk-bar.visible {
+      display: flex;
+    }
+    .bulk-bar .bulk-count {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .bulk-btn {
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: var(--s1) var(--s3);
+      border-radius: var(--r1);
+      transition: background 0.15s, color 0.15s;
+    }
+    .bulk-btn--approve {
+      color: var(--primary);
+    }
+    .bulk-btn--approve:hover {
+      background: var(--accent);
+    }
+    .bulk-btn--reject {
+      color: var(--destructive);
+    }
+    .bulk-btn--reject:hover {
+      background: rgba(220, 53, 69, 0.08);
+    }
+    .dark .bulk-btn--reject:hover {
+      background: rgba(220, 53, 69, 0.15);
+    }
+
+    /* 밑줄 검색 인풋 */
+    .search-wrap {
+      position: relative;
+      margin-left: auto;
+    }
+    .search-input {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--foreground);
+      padding: var(--s1) var(--s2);
+      padding-left: var(--s5);
+      width: 180px;
+      outline: none;
+      transition: border-color 0.2s, width 0.2s;
+    }
+    .search-input::placeholder {
+      color: var(--muted-foreground);
+    }
+    .search-input:focus {
+      border-bottom-color: var(--primary);
+      width: 240px;
+    }
+    .search-icon {
+      position: absolute;
+      left: var(--s1);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      stroke: var(--muted-foreground);
+      fill: none;
+      stroke-width: 2;
+      pointer-events: none;
+    }
+
+    /* 테이블 (데스크톱) */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground);
+      padding: var(--s2) var(--s3);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      user-select: none;
+    }
+    thead th:first-child {
+      padding-left: var(--s2);
+      width: 40px;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+    tbody tr:hover {
+      background: var(--muted);
+    }
+    tbody td {
+      padding: var(--s3);
+      font-size: 14px;
+      color: var(--foreground);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    tbody td:first-child {
+      padding-left: var(--s2);
+    }
+    .td-id {
+      font-variant-numeric: tabular-nums;
+      color: var(--muted-foreground);
+      font-size: 13px;
+    }
+    .td-name {
+      font-weight: 600;
+    }
+    .td-email {
+      color: var(--muted-foreground);
+      font-size: 13px;
+    }
+    .td-date {
+      color: var(--muted-foreground);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 상태 dot + 텍스트 */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--r-full);
+      flex-shrink: 0;
+    }
+    .status--approved .status-dot { background: var(--primary); }
+    .status--approved { color: var(--primary); }
+    .status--pending .status-dot { background: #F59E0B; }
+    .status--pending { color: #D97706; }
+    .dark .status--pending { color: #FBBF24; }
+    .dark .status--pending .status-dot { background: #FBBF24; }
+    .status--cancelled .status-dot { background: var(--gray-4); }
+    .status--cancelled { color: var(--muted-foreground); }
+
+    /* 체크박스 */
+    .cb {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    /* Ghost 작업 버튼 */
+    .action-btn {
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      padding: var(--s1) var(--s2);
+      border-radius: var(--r1);
+      transition: color 0.15s, background 0.15s;
+    }
+    .action-btn:hover {
+      color: var(--foreground);
+      background: var(--muted);
+    }
+
+    /* 모바일 카드 리스트 */
+    .mobile-cards {
+      display: none;
+    }
+
+    /* 풋터 */
+    .footer {
+      text-align: center;
+      padding: var(--s7) 0 var(--s5);
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 768px) {
+      .container {
+        padding: var(--s4);
+      }
+      .page-title {
+        font-size: 22px;
+      }
+      .table-wrap {
+        display: none;
+      }
+      .mobile-cards {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s3);
+      }
+      .m-card {
+        border: 1px solid var(--border);
+        border-radius: var(--r2);
+        padding: var(--s4);
+        background: var(--card);
+        transition: background 0.1s;
+      }
+      .m-card:hover {
+        background: var(--muted);
+      }
+      .m-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--s2);
+      }
+      .m-card-name {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .m-card-id {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        font-variant-numeric: tabular-nums;
+      }
+      .m-card-email {
+        font-size: 13px;
+        color: var(--muted-foreground);
+        margin-bottom: var(--s2);
+        word-break: break-all;
+      }
+      .m-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .m-card-date {
+        font-size: 12px;
+        color: var(--muted-foreground);
+      }
+      .m-card-check {
+        display: flex;
+        align-items: center;
+        gap: var(--s2);
+      }
+      .search-input {
+        width: 140px;
+      }
+      .search-input:focus {
+        width: 180px;
+      }
+      .status-filters {
+        flex-wrap: wrap;
+        gap: var(--s3);
+      }
+      .filter-separator {
+        display: none;
+      }
+      .tabs {
+        gap: var(--s4);
+      }
+    }
+
+    /* 접근성: 모션 감소 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 다크모드 FAB -->
+  <button class="dark-toggle" onclick="document.documentElement.classList.toggle('dark')" aria-label="다크모드 토글">
+    <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+
+  <div class="container">
+    <!-- 뒤로가기 -->
+    <a href="#" class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      행사 목록으로 돌아가기
+    </a>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+      <h1 class="page-title">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        신청자 관리
+      </h1>
+      <div class="page-subtitle">
+        개발 분야 소개 세미나
+        <span class="badge-selection">선발제</span>
+        <span class="count-label">1 / 30명</span>
+      </div>
+    </div>
+
+    <!-- 밑줄 탭 -->
+    <nav class="tabs">
+      <a href="#" class="tab-item active">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        리스트
+      </a>
+      <a href="#" class="tab-item">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        대시보드
+      </a>
+      <a href="#" class="tab-item">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        설문 확인
+      </a>
+    </nav>
+
+    <!-- 상태 필터 -->
+    <div class="status-filters">
+      <span class="status-filter active" data-filter="all">전체(10)</span>
+      <span class="filter-separator">&middot;</span>
+      <span class="status-filter" data-filter="pending">대기(4)</span>
+      <span class="filter-separator">&middot;</span>
+      <span class="status-filter" data-filter="approved">승인(4)</span>
+      <span class="filter-separator">&middot;</span>
+      <span class="status-filter" data-filter="cancelled">취소(2)</span>
+    </div>
+
+    <!-- 툴바 -->
+    <div class="toolbar">
+      <div class="bulk-bar" id="bulkBar">
+        <span><span class="bulk-count" id="bulkCount">0</span>명 선택됨</span>
+        <span style="color:var(--border)">—</span>
+        <button class="bulk-btn bulk-btn--approve">일괄 승인</button>
+        <button class="bulk-btn bulk-btn--reject">일괄 거절</button>
+      </div>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="search-input" placeholder="이름, 학번 검색..." />
+      </div>
+    </div>
+
+    <!-- 데스크톱 테이블 -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" class="cb" id="selectAll" /></th>
+            <th>학번</th>
+            <th>이름</th>
+            <th>이메일</th>
+            <th>상태</th>
+            <th>신청일</th>
+            <th>작업</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr data-status="cancelled">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12345678</td>
+            <td class="td-name">관리자</td>
+            <td class="td-email">admin@inha.edu</td>
+            <td><span class="status status--cancelled"><span class="status-dot"></span>취소</span></td>
+            <td class="td-date">2026.03.08</td>
+            <td><button class="action-btn">복구</button></td>
+          </tr>
+          <tr data-status="approved">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12241494</td>
+            <td class="td-name">장지동</td>
+            <td class="td-email">sestos57696@inha.edu</td>
+            <td><span class="status status--approved"><span class="status-dot"></span>승인</span></td>
+            <td class="td-date">2026.03.08</td>
+            <td><button class="action-btn">승인취소</button></td>
+          </tr>
+          <tr data-status="pending">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12230101</td>
+            <td class="td-name">김민수</td>
+            <td class="td-email">minsu.kim@inha.edu</td>
+            <td><span class="status status--pending"><span class="status-dot"></span>대기</span></td>
+            <td class="td-date">2026.03.07</td>
+            <td><button class="action-btn">승인</button></td>
+          </tr>
+          <tr data-status="approved">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12230215</td>
+            <td class="td-name">이서연</td>
+            <td class="td-email">seoyeon.lee@inha.edu</td>
+            <td><span class="status status--approved"><span class="status-dot"></span>승인</span></td>
+            <td class="td-date">2026.03.07</td>
+            <td><button class="action-btn">승인취소</button></td>
+          </tr>
+          <tr data-status="pending">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12240332</td>
+            <td class="td-name">박지훈</td>
+            <td class="td-email">jihun.park@inha.edu</td>
+            <td><span class="status status--pending"><span class="status-dot"></span>대기</span></td>
+            <td class="td-date">2026.03.06</td>
+            <td><button class="action-btn">승인</button></td>
+          </tr>
+          <tr data-status="approved">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12220448</td>
+            <td class="td-name">정하은</td>
+            <td class="td-email">haeun.jung@inha.edu</td>
+            <td><span class="status status--approved"><span class="status-dot"></span>승인</span></td>
+            <td class="td-date">2026.03.06</td>
+            <td><button class="action-btn">승인취소</button></td>
+          </tr>
+          <tr data-status="pending">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12250512</td>
+            <td class="td-name">최예준</td>
+            <td class="td-email">yejun.choi@inha.edu</td>
+            <td><span class="status status--pending"><span class="status-dot"></span>대기</span></td>
+            <td class="td-date">2026.03.05</td>
+            <td><button class="action-btn">승인</button></td>
+          </tr>
+          <tr data-status="pending">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12230678</td>
+            <td class="td-name">윤도현</td>
+            <td class="td-email">dohyun.yoon@inha.edu</td>
+            <td><span class="status status--pending"><span class="status-dot"></span>대기</span></td>
+            <td class="td-date">2026.03.05</td>
+            <td><button class="action-btn">승인</button></td>
+          </tr>
+          <tr data-status="approved">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12240789</td>
+            <td class="td-name">한소희</td>
+            <td class="td-email">sohee.han@inha.edu</td>
+            <td><span class="status status--approved"><span class="status-dot"></span>승인</span></td>
+            <td class="td-date">2026.03.04</td>
+            <td><button class="action-btn">승인취소</button></td>
+          </tr>
+          <tr data-status="cancelled">
+            <td><input type="checkbox" class="cb row-cb" /></td>
+            <td class="td-id">12210901</td>
+            <td class="td-name">송유진</td>
+            <td class="td-email">yujin.song@inha.edu</td>
+            <td><span class="status status--cancelled"><span class="status-dot"></span>취소</span></td>
+            <td class="td-date">2026.03.03</td>
+            <td><button class="action-btn">복구</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 모바일 카드 리스트 -->
+    <div class="mobile-cards" id="mobileCards">
+      <!-- 카드 1 -->
+      <div class="m-card" data-status="cancelled">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">관리자</span>
+            <span class="m-card-id"> · 12345678</span>
+          </div>
+          <span class="status status--cancelled"><span class="status-dot"></span>취소</span>
+        </div>
+        <div class="m-card-email">admin@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.08</span>
+          <div class="m-card-check">
+            <button class="action-btn">복구</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 2 -->
+      <div class="m-card" data-status="approved">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">장지동</span>
+            <span class="m-card-id"> · 12241494</span>
+          </div>
+          <span class="status status--approved"><span class="status-dot"></span>승인</span>
+        </div>
+        <div class="m-card-email">sestos57696@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.08</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인취소</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 3 -->
+      <div class="m-card" data-status="pending">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">김민수</span>
+            <span class="m-card-id"> · 12230101</span>
+          </div>
+          <span class="status status--pending"><span class="status-dot"></span>대기</span>
+        </div>
+        <div class="m-card-email">minsu.kim@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.07</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 4 -->
+      <div class="m-card" data-status="approved">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">이서연</span>
+            <span class="m-card-id"> · 12230215</span>
+          </div>
+          <span class="status status--approved"><span class="status-dot"></span>승인</span>
+        </div>
+        <div class="m-card-email">seoyeon.lee@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.07</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인취소</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 5 -->
+      <div class="m-card" data-status="pending">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">박지훈</span>
+            <span class="m-card-id"> · 12240332</span>
+          </div>
+          <span class="status status--pending"><span class="status-dot"></span>대기</span>
+        </div>
+        <div class="m-card-email">jihun.park@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.06</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 6 -->
+      <div class="m-card" data-status="approved">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">정하은</span>
+            <span class="m-card-id"> · 12220448</span>
+          </div>
+          <span class="status status--approved"><span class="status-dot"></span>승인</span>
+        </div>
+        <div class="m-card-email">haeun.jung@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.06</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인취소</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 7 -->
+      <div class="m-card" data-status="pending">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">최예준</span>
+            <span class="m-card-id"> · 12250512</span>
+          </div>
+          <span class="status status--pending"><span class="status-dot"></span>대기</span>
+        </div>
+        <div class="m-card-email">yejun.choi@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.05</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 8 -->
+      <div class="m-card" data-status="pending">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">윤도현</span>
+            <span class="m-card-id"> · 12230678</span>
+          </div>
+          <span class="status status--pending"><span class="status-dot"></span>대기</span>
+        </div>
+        <div class="m-card-email">dohyun.yoon@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.05</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 9 -->
+      <div class="m-card" data-status="approved">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">한소희</span>
+            <span class="m-card-id"> · 12240789</span>
+          </div>
+          <span class="status status--approved"><span class="status-dot"></span>승인</span>
+        </div>
+        <div class="m-card-email">sohee.han@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.04</span>
+          <div class="m-card-check">
+            <button class="action-btn">승인취소</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+      <!-- 카드 10 -->
+      <div class="m-card" data-status="cancelled">
+        <div class="m-card-header">
+          <div>
+            <span class="m-card-name">송유진</span>
+            <span class="m-card-id"> · 12210901</span>
+          </div>
+          <span class="status status--cancelled"><span class="status-dot"></span>취소</span>
+        </div>
+        <div class="m-card-email">yujin.song@inha.edu</div>
+        <div class="m-card-footer">
+          <span class="m-card-date">2026.03.03</span>
+          <div class="m-card-check">
+            <button class="action-btn">복구</button>
+            <input type="checkbox" class="cb row-cb-m" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 풋터 -->
+    <footer class="footer">&copy; 2026 IGRUS</footer>
+  </div>
+
+  <script>
+    /* 전체선택 체크박스 */
+    const selectAll = document.getElementById('selectAll');
+    const rowCbs = document.querySelectorAll('.row-cb');
+    const bulkBar = document.getElementById('bulkBar');
+    const bulkCount = document.getElementById('bulkCount');
+
+    function updateBulk() {
+      const checked = document.querySelectorAll('.row-cb:checked').length;
+      bulkCount.textContent = checked;
+      if (checked > 0) {
+        bulkBar.classList.add('visible');
+      } else {
+        bulkBar.classList.remove('visible');
+      }
+    }
+
+    selectAll.addEventListener('change', function () {
+      rowCbs.forEach(cb => { cb.checked = this.checked; });
+      updateBulk();
+    });
+
+    rowCbs.forEach(cb => {
+      cb.addEventListener('change', function () {
+        if (!this.checked) selectAll.checked = false;
+        if (document.querySelectorAll('.row-cb:checked').length === rowCbs.length) {
+          selectAll.checked = true;
+        }
+        updateBulk();
+      });
+    });
+
+    /* 상태 필터 (시각적 데모) */
+    const filters = document.querySelectorAll('.status-filter');
+    filters.forEach(f => {
+      f.addEventListener('click', function () {
+        filters.forEach(x => x.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.dataset.filter;
+        // 데스크톱 테이블 필터
+        document.querySelectorAll('#tableBody tr').forEach(row => {
+          if (filter === 'all' || row.dataset.status === filter) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+        // 모바일 카드 필터
+        document.querySelectorAll('#mobileCards .m-card').forEach(card => {
+          if (filter === 'all' || card.dataset.status === filter) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
