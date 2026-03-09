@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>신청자 관리 — 대시보드 | IGRUS</title>
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== 페이지 고유 스타일 ===== */
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 다크모드 FAB */
+    .dark-toggle {
+      position: fixed;
+      bottom: var(--s5);
+      right: var(--s5);
+      width: 48px;
+      height: 48px;
+      border-radius: var(--r-full);
+      background: var(--card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .dark-toggle:hover {
+      background: var(--muted);
+    }
+    .dark-toggle svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--foreground);
+      stroke: var(--foreground);
+      stroke-width: 1.5;
+    }
+    .dark .dark-toggle svg.icon-sun { display: block; }
+    .dark .dark-toggle svg.icon-moon { display: none; }
+    .icon-sun { display: none; }
+    .icon-moon { display: block; }
+
+    /* 컨테이너 */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--s5);
+      width: 100%;
+      flex: 1;
+    }
+
+    /* 뒤로가기 */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s2);
+      color: var(--muted-foreground);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: var(--s5);
+      transition: color 0.15s;
+    }
+    .back-link:hover {
+      color: var(--foreground);
+    }
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* 페이지 헤더 */
+    .page-header {
+      margin-bottom: var(--s5);
+    }
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: var(--s2);
+    }
+    .page-title svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--primary);
+      fill: none;
+      stroke-width: 1.5;
+      flex-shrink: 0;
+    }
+    .page-subtitle {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      font-size: 14px;
+      color: var(--muted-foreground);
+      flex-wrap: wrap;
+    }
+    .badge-selection {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--s3);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--accent);
+      border-radius: var(--r-full);
+    }
+    .count-label {
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    /* 밑줄 탭 */
+    .tabs {
+      display: flex;
+      gap: var(--s5);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--s6);
+    }
+    .tab-item {
+      padding: var(--s3) 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+    }
+    .tab-item:hover {
+      color: var(--foreground);
+    }
+    .tab-item.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+    .tab-item svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* ===== 대시보드 그리드 ===== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s5);
+    }
+
+    /* 차트 카드 */
+    .chart-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r3);
+      padding: var(--s5);
+      background: transparent;
+    }
+    .chart-card__title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: var(--s1);
+    }
+    .chart-card__sub {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      margin-bottom: var(--s5);
+    }
+
+    /* ===== 파이/도넛 차트 공통 ===== */
+    .pie-chart-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--s6);
+    }
+
+    /* 파이 차트 (성별) */
+    .pie-chart {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      border-radius: var(--r-full);
+      flex-shrink: 0;
+    }
+    .pie-chart__circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+    /* 성별: 남성 58% (208.8deg), 여성 42% (151.2deg) */
+    .pie-gender .pie-chart__circle {
+      background: conic-gradient(
+        #3B82F6 0deg 208.8deg,
+        #EC4899 208.8deg 360deg
+      );
+    }
+    /* 파이 차트 위 퍼센트 라벨 */
+    .pie-label {
+      position: absolute;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+    .pie-label--male {
+      top: 38%;
+      left: 28%;
+      transform: translate(-50%, -50%);
+    }
+    .pie-label--female {
+      top: 68%;
+      left: 72%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* 도넛 차트 (신청 상태) */
+    .donut-chart {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      border-radius: var(--r-full);
+      flex-shrink: 0;
+    }
+    .donut-chart__circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+    /* 신청 상태: 승인 50%(180deg), 대기 33%(118.8deg), 취소 17%(61.2deg) */
+    .donut-status .donut-chart__circle {
+      background: conic-gradient(
+        var(--primary) 0deg 180deg,
+        #F59E0B 180deg 298.8deg,
+        var(--muted-foreground) 298.8deg 360deg
+      );
+    }
+    .donut-chart__hole {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--background);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .donut-chart__hole-number {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--foreground);
+      line-height: 1.2;
+    }
+    .donut-chart__hole-label {
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+    /* 도넛 위 퍼센트 라벨 */
+    .donut-label {
+      position: absolute;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+    .donut-label--approved {
+      top: 28%;
+      left: 18%;
+      transform: translate(-50%, -50%);
+    }
+    .donut-label--pending {
+      top: 68%;
+      left: 86%;
+      transform: translate(-50%, -50%);
+    }
+    .donut-label--cancelled {
+      top: 92%;
+      left: 60%;
+      transform: translate(-50%, -50%);
+      color: var(--foreground);
+      text-shadow: none;
+      font-size: 11px;
+    }
+
+    /* 범례 */
+    .legend {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s3);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 13px;
+      color: var(--foreground);
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-dot--male { background: #3B82F6; }
+    .legend-dot--female { background: #EC4899; }
+    .legend-dot--approved { background: var(--primary); }
+    .legend-dot--pending { background: #F59E0B; }
+    .legend-dot--cancelled { background: var(--muted-foreground); }
+    .legend-value {
+      color: var(--muted-foreground);
+      font-size: 12px;
+      margin-left: var(--s1);
+    }
+
+    /* ===== 바 차트 ===== */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 0;
+      height: 200px;
+      position: relative;
+      padding-left: 32px;
+      padding-bottom: 40px;
+    }
+    /* Y축 눈금 */
+    .bar-chart__y-axis {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 40px;
+      width: 28px;
+      display: flex;
+      flex-direction: column-reverse;
+      justify-content: space-between;
+    }
+    .bar-chart__y-label {
+      font-size: 11px;
+      color: var(--muted-foreground);
+      text-align: right;
+      line-height: 1;
+    }
+    /* 그리드 라인 */
+    .bar-chart__grid {
+      position: absolute;
+      left: 32px;
+      right: 0;
+      top: 0;
+      bottom: 40px;
+    }
+    .bar-chart__grid-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      border-top: 1px dashed var(--border);
+    }
+
+    /* 바 영역 */
+    .bar-chart__bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      flex: 1;
+      height: calc(100% - 40px);
+      position: relative;
+      z-index: 1;
+      padding: 0 var(--s4);
+    }
+    .bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s2);
+      flex: 1;
+      max-width: 80px;
+    }
+    .bar {
+      width: 32px;
+      border-radius: var(--r1) var(--r1) 0 0;
+      transition: opacity 0.15s;
+      position: relative;
+    }
+    .bar:hover {
+      opacity: 0.8;
+    }
+    .bar-value {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+    .bar--teal { background: #03A69E; }
+    .dark .bar--teal { background: #66CBC5; }
+    .bar--blue { background: #3B82F6; }
+    .bar-x-label {
+      font-size: 12px;
+      color: var(--muted-foreground);
+      text-align: center;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+
+    /* 학과 바차트: X축 라벨 줄바꿈 */
+    .bar-chart--dept .bar-x-label {
+      white-space: normal;
+      word-break: keep-all;
+      font-size: 11px;
+      max-width: 72px;
+      line-height: 1.2;
+    }
+    .bar-chart--dept .bar-group {
+      max-width: 96px;
+    }
+
+    /* 풋터 */
+    .footer {
+      text-align: center;
+      padding: var(--s7) 0 var(--s5);
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 768px) {
+      .container {
+        padding: var(--s4);
+      }
+      .page-title {
+        font-size: 22px;
+      }
+      .tabs {
+        gap: var(--s4);
+      }
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .pie-chart-wrap {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--s4);
+      }
+      .pie-chart,
+      .donut-chart {
+        width: 140px;
+        height: 140px;
+      }
+      .donut-chart__hole {
+        width: 68px;
+        height: 68px;
+      }
+      .donut-chart__hole-number {
+        font-size: 18px;
+      }
+      .legend {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--s4);
+        justify-content: center;
+      }
+      .bar-chart {
+        height: 180px;
+      }
+      .bar {
+        width: 24px;
+      }
+      .bar-chart--dept .bar-x-label {
+        font-size: 10px;
+        max-width: 56px;
+      }
+      .bar-chart--dept .bar-group {
+        max-width: 72px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .pie-chart,
+      .donut-chart {
+        width: 120px;
+        height: 120px;
+      }
+      .donut-chart__hole {
+        width: 56px;
+        height: 56px;
+      }
+      .donut-chart__hole-number {
+        font-size: 16px;
+      }
+      .pie-label {
+        font-size: 11px;
+      }
+      .bar {
+        width: 20px;
+      }
+      .bar-chart {
+        height: 160px;
+      }
+    }
+
+    /* 접근성: 모션 감소 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 다크모드 FAB -->
+  <button class="dark-toggle" onclick="document.documentElement.classList.toggle('dark')" aria-label="다크모드 토글">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+
+  <div class="container">
+    <!-- 뒤로가기 -->
+    <a href="#" class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      행사 목록으로 돌아가기
+    </a>
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+      <h1 class="page-title">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        신청자 관리
+      </h1>
+      <div class="page-subtitle">
+        개발 분야 소개 세미나
+        <span class="badge-selection">선발제</span>
+        <span class="count-label">12 / 30명</span>
+      </div>
+    </div>
+
+    <!-- 밑줄 탭 -->
+    <nav class="tabs">
+      <a href="#" class="tab-item">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        리스트
+      </a>
+      <a href="#" class="tab-item active">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        대시보드
+      </a>
+      <a href="#" class="tab-item">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        설문 확인
+      </a>
+    </nav>
+
+    <!-- 대시보드 2x2 그리드 -->
+    <div class="dashboard-grid">
+
+      <!-- 그래프 1: 성별 — 파이 차트 -->
+      <div class="chart-card">
+        <div class="chart-card__title">성별</div>
+        <div class="chart-card__sub">응답 12개</div>
+        <div class="pie-chart-wrap">
+          <div class="pie-chart pie-gender">
+            <div class="pie-chart__circle"></div>
+            <span class="pie-label pie-label--male">58%</span>
+            <span class="pie-label pie-label--female">42%</span>
+          </div>
+          <div class="legend">
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--male"></span>
+              남성 7명<span class="legend-value">(58%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--female"></span>
+              여성 5명<span class="legend-value">(42%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 그래프 2: 신청 상태 — 도넛 차트 -->
+      <div class="chart-card">
+        <div class="chart-card__title">신청 상태</div>
+        <div class="chart-card__sub">응답 12개</div>
+        <div class="pie-chart-wrap">
+          <div class="donut-chart donut-status">
+            <div class="donut-chart__circle"></div>
+            <div class="donut-chart__hole">
+              <span class="donut-chart__hole-number">12</span>
+              <span class="donut-chart__hole-label">총 응답</span>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--approved"></span>
+              승인 6명<span class="legend-value">(50%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--pending"></span>
+              대기 4명<span class="legend-value">(33%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--cancelled"></span>
+              취소 2명<span class="legend-value">(17%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 그래프 3: 학년 — 수직 바 차트 -->
+      <div class="chart-card">
+        <div class="chart-card__title">학년</div>
+        <div class="chart-card__sub">응답 12개</div>
+        <div class="bar-chart">
+          <!-- Y축 -->
+          <div class="bar-chart__y-axis">
+            <span class="bar-chart__y-label">0</span>
+            <span class="bar-chart__y-label">1</span>
+            <span class="bar-chart__y-label">2</span>
+            <span class="bar-chart__y-label">3</span>
+            <span class="bar-chart__y-label">4</span>
+            <span class="bar-chart__y-label">5</span>
+            <span class="bar-chart__y-label">6</span>
+          </div>
+          <!-- 그리드 라인 -->
+          <div class="bar-chart__grid">
+            <div class="bar-chart__grid-line" style="bottom: 0%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 16.67%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 33.33%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 50%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 66.67%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 83.33%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 100%"></div>
+          </div>
+          <!-- 바 -->
+          <div class="bar-chart__bars">
+            <div class="bar-group">
+              <!-- 1학년: 1/6 = 16.67% -->
+              <div class="bar bar--teal" style="height: 16.67%">
+                <span class="bar-value">1</span>
+              </div>
+              <span class="bar-x-label">1학년</span>
+            </div>
+            <div class="bar-group">
+              <!-- 2학년: 3/6 = 50% -->
+              <div class="bar bar--blue" style="height: 50%">
+                <span class="bar-value">3</span>
+              </div>
+              <span class="bar-x-label">2학년</span>
+            </div>
+            <div class="bar-group">
+              <!-- 3학년: 5/6 = 83.33% -->
+              <div class="bar bar--teal" style="height: 83.33%">
+                <span class="bar-value">5</span>
+              </div>
+              <span class="bar-x-label">3학년</span>
+            </div>
+            <div class="bar-group">
+              <!-- 4학년: 3/6 = 50% -->
+              <div class="bar bar--blue" style="height: 50%">
+                <span class="bar-value">3</span>
+              </div>
+              <span class="bar-x-label">4학년</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 그래프 4: 학과 — 수직 바 차트 -->
+      <div class="chart-card">
+        <div class="chart-card__title">학과</div>
+        <div class="chart-card__sub">응답 12개</div>
+        <div class="bar-chart bar-chart--dept">
+          <!-- Y축 -->
+          <div class="bar-chart__y-axis">
+            <span class="bar-chart__y-label">0</span>
+            <span class="bar-chart__y-label">1</span>
+            <span class="bar-chart__y-label">2</span>
+            <span class="bar-chart__y-label">3</span>
+            <span class="bar-chart__y-label">4</span>
+            <span class="bar-chart__y-label">5</span>
+            <span class="bar-chart__y-label">6</span>
+          </div>
+          <!-- 그리드 라인 -->
+          <div class="bar-chart__grid">
+            <div class="bar-chart__grid-line" style="bottom: 0%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 16.67%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 33.33%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 50%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 66.67%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 83.33%"></div>
+            <div class="bar-chart__grid-line" style="bottom: 100%"></div>
+          </div>
+          <!-- 바 -->
+          <div class="bar-chart__bars">
+            <div class="bar-group">
+              <!-- 컴퓨터공학과: 5/6 = 83.33% -->
+              <div class="bar bar--teal" style="height: 83.33%">
+                <span class="bar-value">5</span>
+              </div>
+              <span class="bar-x-label">컴퓨터<br/>공학과</span>
+            </div>
+            <div class="bar-group">
+              <!-- 전기전자공학부: 3/6 = 50% -->
+              <div class="bar bar--blue" style="height: 50%">
+                <span class="bar-value">3</span>
+              </div>
+              <span class="bar-x-label">전기전자<br/>공학부</span>
+            </div>
+            <div class="bar-group">
+              <!-- 정보통신공학과: 2/6 = 33.33% -->
+              <div class="bar bar--teal" style="height: 33.33%">
+                <span class="bar-value">2</span>
+              </div>
+              <span class="bar-x-label">정보통신<br/>공학과</span>
+            </div>
+            <div class="bar-group">
+              <!-- 소프트웨어융합공학과: 1/6 = 16.67% -->
+              <div class="bar bar--blue" style="height: 16.67%">
+                <span class="bar-value">1</span>
+              </div>
+              <span class="bar-x-label">SW융합<br/>공학과</span>
+            </div>
+            <div class="bar-group">
+              <!-- 기타: 1/6 = 16.67% -->
+              <div class="bar bar--teal" style="height: 16.67%">
+                <span class="bar-value">1</span>
+              </div>
+              <span class="bar-x-label">기타</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 풋터 -->
+    <footer class="footer">&copy; 2026 IGRUS</footer>
+  </div>
+
+</body>
+</html>
