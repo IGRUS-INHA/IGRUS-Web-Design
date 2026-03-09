@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IGRUS — 게시판</title>
+  <link rel="stylesheet" href="../../../reference/tokens.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== 카테고리 Accent 색상 ===== */
+    :root {
+      --cat-notice: var(--primary);
+      --cat-notice-bg: var(--accent);
+      --cat-free: #6366F1;
+      --cat-free-bg: #EEF2FF;
+      --cat-info: #F59E0B;
+      --cat-info-bg: #FFFBEB;
+      --cat-question: #EC4899;
+      --cat-question-bg: #FDF2F8;
+      --cat-hot: #EF4444;
+    }
+
+    .dark {
+      --cat-free-bg: rgba(99, 102, 241, 0.15);
+      --cat-info-bg: rgba(245, 158, 11, 0.15);
+      --cat-question-bg: rgba(236, 72, 153, 0.15);
+    }
+
+    /* ===== 기본 ===== */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ===== 사이드바 ===== */
+    .sidebar {
+      width: 240px;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: var(--s5);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.025em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--s4) 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s1);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      padding: var(--s3) var(--s5);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s;
+    }
+
+    .nav-item:hover {
+      color: var(--foreground);
+      background: var(--muted);
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: var(--s2);
+      bottom: var(--s2);
+      width: 4px;
+      background: var(--primary);
+      border-radius: 0 var(--r1) var(--r1) 0;
+    }
+
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-bottom {
+      padding: var(--s4) var(--s5);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s2);
+    }
+
+    /* ===== 메인 래퍼 ===== */
+    .main-wrapper {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== 헤더 ===== */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 var(--s6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-tabs {
+      display: flex;
+      gap: var(--s1);
+      height: 100%;
+    }
+
+    .header-tab {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: 0 var(--s4);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      border: none;
+      background: none;
+      cursor: pointer;
+      position: relative;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.15s;
+    }
+
+    .header-tab:hover { color: var(--foreground); }
+
+    .header-tab.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .header-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: var(--s4);
+      right: var(--s4);
+      height: 2px;
+      background: var(--primary);
+      border-radius: var(--r1) var(--r1) 0 0;
+    }
+
+    .header-tab svg { width: 16px; height: 16px; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+
+    .header-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--r-full);
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-foreground);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--foreground);
+      cursor: pointer;
+      padding: var(--s2);
+    }
+
+    .mobile-menu-btn svg { width: 24px; height: 24px; }
+
+    /* ===== 콘텐츠 영역 ===== */
+    .content {
+      flex: 1;
+      padding: var(--s6);
+      max-width: 80rem;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ===== 히어로 배너 ===== */
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r4);
+      padding: var(--s7) var(--s6);
+      margin-bottom: var(--s6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--cat-free), var(--cat-info), var(--cat-question));
+      border-radius: var(--r4) var(--r4) 0 0;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -40px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .hero-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: var(--s2);
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      color: var(--foreground);
+      margin-bottom: var(--s3);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: var(--s5);
+      flex-wrap: wrap;
+    }
+
+    .hero-stat {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 14px;
+      color: var(--muted-foreground);
+    }
+
+    .hero-stat strong {
+      color: var(--foreground);
+      font-weight: 600;
+    }
+
+    /* ===== 필터 바 ===== */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      margin-bottom: var(--s5);
+      flex-wrap: wrap;
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: var(--s2);
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s1);
+      padding: var(--s2) var(--s4);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      border-radius: var(--r-full);
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted-foreground);
+      transition: all 0.15s;
+    }
+
+    .chip:hover {
+      border-color: var(--primary);
+      color: var(--foreground);
+    }
+
+    .chip.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+
+    .chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--r-full);
+      flex-shrink: 0;
+    }
+
+    .chip-count {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.2);
+      padding: 1px var(--s2);
+      border-radius: var(--r-full);
+    }
+
+    .chip.active .chip-count {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .filter-right {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+    }
+
+    .sort-select {
+      padding: var(--s2) var(--s4);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: var(--card);
+      color: var(--foreground);
+      cursor: pointer;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: var(--s2) var(--s4);
+      border: 1px solid var(--border);
+      border-radius: var(--r-full);
+      background: var(--card);
+      transition: border-color 0.15s, width 0.3s;
+      width: 200px;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3, 166, 158, 0.1);
+      width: 280px;
+    }
+
+    .search-box svg {
+      width: 16px;
+      height: 16px;
+      color: var(--muted-foreground);
+      flex-shrink: 0;
+    }
+
+    .search-box input {
+      border: none;
+      background: none;
+      outline: none;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: var(--foreground);
+      width: 100%;
+    }
+
+    .search-box input::placeholder {
+      color: var(--muted-foreground);
+    }
+
+    /* ===== 공지사항 핀 고정 영역 ===== */
+    .pinned-section {
+      margin-bottom: var(--s5);
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--s3);
+    }
+
+    .section-label svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .pinned-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: var(--s4);
+    }
+
+    .pinned-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r3);
+      padding: var(--s4) var(--s5);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pinned-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 16px rgba(3, 166, 158, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .pinned-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary);
+    }
+
+    .pinned-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      margin-bottom: var(--s2);
+    }
+
+    .pin-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--primary);
+    }
+
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--s3);
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: var(--r1);
+    }
+
+    .badge-notice {
+      background: var(--cat-notice-bg);
+      color: var(--cat-notice);
+    }
+
+    .badge-free {
+      background: var(--cat-free-bg);
+      color: var(--cat-free);
+    }
+
+    .badge-info {
+      background: var(--cat-info-bg);
+      color: var(--cat-info);
+    }
+
+    .badge-question {
+      background: var(--cat-question-bg);
+      color: var(--cat-question);
+    }
+
+    .pinned-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: var(--s1);
+      line-height: 1.4;
+    }
+
+    .pinned-preview {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: var(--s3);
+    }
+
+    .pinned-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    .pinned-meta svg { width: 12px; height: 12px; }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: var(--s1);
+    }
+
+    /* ===== 게시글 목록 ===== */
+    .posts-section {
+      margin-bottom: var(--s6);
+    }
+
+    .date-group {
+      margin-bottom: var(--s5);
+    }
+
+    .date-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      margin-bottom: var(--s3);
+      padding-left: var(--s2);
+    }
+
+    .post-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s3);
+    }
+
+    .post-card {
+      display: flex;
+      gap: var(--s4);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r3);
+      padding: var(--s4) var(--s5);
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .post-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .post-category-bar {
+      width: 4px;
+      border-radius: var(--r-full);
+      flex-shrink: 0;
+      align-self: stretch;
+    }
+
+    .bar-notice { background: var(--cat-notice); }
+    .bar-free { background: var(--cat-free); }
+    .bar-info { background: var(--cat-info); }
+    .bar-question { background: var(--cat-question); }
+
+    .post-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .post-top-row {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      margin-bottom: var(--s1);
+      flex-wrap: wrap;
+    }
+
+    .post-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--foreground);
+      line-height: 1.4;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .hot-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px var(--s2);
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: var(--r1);
+      background: #FEF2F2;
+      color: var(--cat-hot);
+      flex-shrink: 0;
+    }
+
+    .dark .hot-badge {
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    .new-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px var(--s2);
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: var(--r1);
+      background: var(--primary);
+      color: var(--primary-foreground);
+      flex-shrink: 0;
+    }
+
+    .post-preview {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      line-height: 1.5;
+      margin-bottom: var(--s3);
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .post-footer {
+      display: flex;
+      align-items: center;
+      gap: var(--s4);
+      flex-wrap: wrap;
+    }
+
+    .post-author {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      font-size: 13px;
+      color: var(--foreground);
+      font-weight: 500;
+    }
+
+    .author-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--r-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--s3);
+      font-size: 12px;
+      color: var(--muted-foreground);
+      margin-left: auto;
+    }
+
+    .post-meta svg { width: 13px; height: 13px; }
+
+    .post-stat {
+      display: flex;
+      align-items: center;
+      gap: var(--s1);
+    }
+
+    .post-stat.has-comments {
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* ===== 페이지네이션 ===== */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s2);
+      padding: var(--s5) 0;
+    }
+
+    .page-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      background: var(--card);
+      color: var(--muted-foreground);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .page-btn:hover {
+      border-color: var(--primary);
+      color: var(--foreground);
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+
+    .page-btn svg { width: 16px; height: 16px; }
+
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ===== 풋터 ===== */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: var(--s5) var(--s6);
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted-foreground);
+    }
+
+    /* ===== 다크모드 FAB ===== */
+    .theme-fab {
+      position: fixed;
+      bottom: var(--s5);
+      right: var(--s5);
+      width: 48px;
+      height: 48px;
+      border-radius: var(--r-full);
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--foreground);
+      transition: all 0.2s;
+      z-index: 200;
+    }
+
+    .theme-fab:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    }
+
+    .theme-fab svg { width: 20px; height: 20px; }
+
+    .theme-fab .icon-moon { display: block; }
+    .theme-fab .icon-sun { display: none; }
+    .dark .theme-fab .icon-moon { display: none; }
+    .dark .theme-fab .icon-sun { display: block; }
+
+    /* ===== 글쓰기 FAB ===== */
+    .write-fab {
+      position: fixed;
+      bottom: var(--s5);
+      right: 84px;
+      height: 48px;
+      padding: 0 var(--s5);
+      border-radius: var(--r-full);
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border: none;
+      box-shadow: 0 4px 16px rgba(3, 166, 158, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--s2);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      z-index: 200;
+    }
+
+    .write-fab:hover {
+      transform: scale(1.04);
+      box-shadow: 0 6px 24px rgba(3, 166, 158, 0.35);
+    }
+
+    .write-fab svg { width: 18px; height: 18px; }
+
+    /* ===== 모바일 오버레이 ===== */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 99;
+    }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 991px) {
+      .sidebar {
+        position: fixed;
+        left: -240px;
+        transition: left 0.3s;
+      }
+
+      .sidebar.open { left: 0; }
+      .sidebar.open + .sidebar-overlay { display: block; }
+
+      .mobile-menu-btn { display: flex; }
+
+      .content { padding: var(--s5) var(--s4); }
+
+      .hero { padding: var(--s6) var(--s5); }
+
+      .pinned-grid { grid-template-columns: 1fr; }
+
+      .search-box {
+        width: 160px;
+      }
+
+      .search-box:focus-within { width: 200px; }
+
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .filter-right { justify-content: space-between; }
+    }
+
+    @media (max-width: 575px) {
+      .header { padding: 0 var(--s4); }
+
+      .header-tabs { display: none; }
+
+      .hero-title { font-size: 28px; }
+
+      .hero-stats { gap: var(--s4); }
+
+      .post-card { flex-direction: column; gap: var(--s3); }
+
+      .post-category-bar {
+        width: auto;
+        height: 4px;
+        align-self: stretch;
+        border-radius: var(--r-full);
+      }
+
+      .post-meta { margin-left: 0; }
+
+      .write-fab {
+        right: 76px;
+        padding: 0 var(--s4);
+        font-size: 13px;
+      }
+
+      .filter-right { flex-wrap: wrap; }
+    }
+
+    /* ===== 접근성 ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 사이드바 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">IGRUS</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        홈
+      </a>
+      <a class="nav-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        게시판
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        행사
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        문의
+      </a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        마이페이지
+      </a>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 메인 래퍼 -->
+  <div class="main-wrapper">
+    <!-- 헤더 -->
+    <header class="header">
+      <button class="mobile-menu-btn" id="menuBtn" aria-label="메뉴 열기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="header-tabs">
+        <button class="header-tab" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+          공지사항
+        </button>
+        <button class="header-tab active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          자유게시판
+        </button>
+        <button class="header-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          정보공유
+        </button>
+        <button class="header-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          행사
+        </button>
+      </div>
+      <div class="header-right">
+        <div class="header-avatar">JK</div>
+      </div>
+    </header>
+
+    <!-- 콘텐츠 -->
+    <main class="content">
+
+      <!-- 히어로 배너 -->
+      <section class="hero">
+        <div class="hero-label">Board</div>
+        <h1 class="hero-title">게시판</h1>
+        <div class="hero-stats">
+          <span class="hero-stat">전체 <strong>247</strong>개</span>
+          <span class="hero-stat">오늘 <strong>5</strong>개</span>
+          <span class="hero-stat">이번 주 <strong>23</strong>개</span>
+        </div>
+      </section>
+
+      <!-- 필터 바 -->
+      <div class="filter-bar">
+        <div class="filter-chips">
+          <button class="chip active">
+            전체
+            <span class="chip-count">247</span>
+          </button>
+          <button class="chip">
+            <span class="chip-dot" style="background: var(--cat-notice)"></span>
+            공지
+            <span class="chip-count">12</span>
+          </button>
+          <button class="chip">
+            <span class="chip-dot" style="background: var(--cat-free)"></span>
+            자유
+            <span class="chip-count">98</span>
+          </button>
+          <button class="chip">
+            <span class="chip-dot" style="background: var(--cat-info)"></span>
+            정보
+            <span class="chip-count">85</span>
+          </button>
+          <button class="chip">
+            <span class="chip-dot" style="background: var(--cat-question)"></span>
+            질문
+            <span class="chip-count">52</span>
+          </button>
+        </div>
+        <div class="filter-right">
+          <select class="sort-select">
+            <option>최신순</option>
+            <option>인기순</option>
+            <option>댓글순</option>
+            <option>조회순</option>
+          </select>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="게시글 검색..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- 공지사항 핀 고정 -->
+      <section class="pinned-section">
+        <div class="section-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 22"/><path d="M17 7L7 7"/><path d="M19 12L5 12"/><path d="M16 17L8 17"/></svg>
+          Pinned &middot; 고정 공지
+        </div>
+        <div class="pinned-grid">
+          <!-- 핀 1 -->
+          <div class="pinned-card">
+            <div class="pinned-card-header">
+              <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+              <span class="category-badge badge-notice">공지</span>
+            </div>
+            <div class="pinned-title">2026학년도 1학기 IGRUS 정기 모집 안내</div>
+            <div class="pinned-preview">2026학년도 1학기 정기 부원 모집이 시작됩니다. 관심 있는 분들은 아래 내용을 확인하시고 기간 내에 지원해 주시기 바랍니다.</div>
+            <div class="pinned-meta">
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                관리자
+              </span>
+              <span class="meta-item">2026.03.07</span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                342
+              </span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                15
+              </span>
+            </div>
+          </div>
+          <!-- 핀 2 -->
+          <div class="pinned-card">
+            <div class="pinned-card-header">
+              <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+              <span class="category-badge badge-notice">공지</span>
+            </div>
+            <div class="pinned-title">동아리방 이용 규칙 및 운영 시간 안내</div>
+            <div class="pinned-preview">동아리방 이용에 관한 규칙이 업데이트되었습니다. 모든 부원은 아래 규칙을 숙지해 주시기 바랍니다.</div>
+            <div class="pinned-meta">
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                관리자
+              </span>
+              <span class="meta-item">2026.02.28</span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                218
+              </span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                8
+              </span>
+            </div>
+          </div>
+          <!-- 핀 3 -->
+          <div class="pinned-card">
+            <div class="pinned-card-header">
+              <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+              <span class="category-badge badge-notice">공지</span>
+            </div>
+            <div class="pinned-title">스터디 그룹 신청 가이드라인</div>
+            <div class="pinned-preview">2026년 1학기 스터디 그룹 개설 및 신청 방법에 대해 안내드립니다. 최소 3인 이상의 팀으로 구성하여 신청해 주세요.</div>
+            <div class="pinned-meta">
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                관리자
+              </span>
+              <span class="meta-item">2026.02.20</span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                156
+              </span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                12
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 일반 게시글 목록 -->
+      <section class="posts-section">
+        <!-- 오늘 -->
+        <div class="date-group">
+          <div class="date-label">오늘</div>
+          <div class="post-list">
+            <!-- 게시글 1 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-free"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-free">자유</span>
+                  <h3 class="post-title">기말고사 끝나고 뭐 하시나요?</h3>
+                  <span class="hot-badge">인기</span>
+                  <span class="new-badge">N</span>
+                </div>
+                <p class="post-preview">다들 기말고사 시즌 고생 많으셨습니다! 저는 종강하면 바로 여행 갈 계획인데, 혹시 같이 가실 분...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-free-bg); color: var(--cat-free);">민</div>
+                    김민수
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">2시간 전</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      128
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      24
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 2 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-question"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-question">질문</span>
+                  <h3 class="post-title">React useEffect 무한 루프 해결 방법 아시는 분?</h3>
+                  <span class="new-badge">N</span>
+                </div>
+                <p class="post-preview">의존성 배열에 객체를 넣으면 매번 새로운 참조로 인식되어 무한 루프가 발생하는데, 어떻게 해결하면...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-question-bg); color: var(--cat-question);">서</div>
+                    이서연
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">3시간 전</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      67
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      9
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 3 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-info"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-info">정보</span>
+                  <h3 class="post-title">2026 네이버 부스트캠프 웹·모바일 9기 모집 시작</h3>
+                  <span class="hot-badge">인기</span>
+                </div>
+                <p class="post-preview">네이버 부스트캠프 웹·모바일 9기 모집이 시작되었습니다. 지원 기간은 3월 15일까지이며, 코딩테스트는...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-info-bg); color: var(--cat-info);">준</div>
+                    박준혁
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">5시간 전</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      203
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      18
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 4 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-free"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-free">자유</span>
+                  <h3 class="post-title">동아리방에서 같이 코딩할 분 구합니다</h3>
+                </div>
+                <p class="post-preview">혼자 코딩하면 집중이 잘 안 돼서, 같이 모여서 각자 코딩하실 분 구합니다. 매주 화/목 오후 2시...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-free-bg); color: var(--cat-free);">하</div>
+                    정하윤
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">6시간 전</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      45
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      7
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 5 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-question"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-question">질문</span>
+                  <h3 class="post-title">Docker Compose에서 환경변수 관리 어떻게 하시나요?</h3>
+                </div>
+                <p class="post-preview">.env 파일과 docker-compose.yml에서 환경변수 우선순위가 헷갈리는데, 보통 프로젝트에서 어떤 방식으로...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-question-bg); color: var(--cat-question);">윤</div>
+                    최윤호
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">7시간 전</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      38
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      5
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- 이번 주 -->
+        <div class="date-group">
+          <div class="date-label">이번 주</div>
+          <div class="post-list">
+            <!-- 게시글 6 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-info"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-info">정보</span>
+                  <h3 class="post-title">GitHub Copilot 무료 학생 인증 방법 정리</h3>
+                  <span class="hot-badge">인기</span>
+                </div>
+                <p class="post-preview">GitHub Student Developer Pack을 통해 Copilot을 무료로 사용할 수 있습니다. 인하대 메일로 인증하는 방법...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-info-bg); color: var(--cat-info);">지</div>
+                    한지우
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">3월 6일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      312
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      31
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 7 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-free"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-free">자유</span>
+                  <h3 class="post-title">카페 추천 부탁드려요 (코딩하기 좋은 곳)</h3>
+                </div>
+                <p class="post-preview">학교 근처에서 코딩하기 좋은 카페 아시는 분? 콘센트 있고 조용한 곳이면 좋겠습니다...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-free-bg); color: var(--cat-free);">소</div>
+                    강소영
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">3월 5일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      89
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      14
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 8 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-question"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-question">질문</span>
+                  <h3 class="post-title">TypeScript 제네릭 이해가 잘 안 됩니다</h3>
+                </div>
+                <p class="post-preview">제네릭을 공부하고 있는데, extends 키워드와 conditional type이 복잡해서 좋은 학습 자료 추천 부탁...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-question-bg); color: var(--cat-question);">현</div>
+                    오현우
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">3월 5일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      52
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      11
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 9 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-info"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-info">정보</span>
+                  <h3 class="post-title">프로그래머스 코딩테스트 연습 로드맵 공유</h3>
+                </div>
+                <p class="post-preview">취준 코딩테스트 준비하면서 정리한 로드맵입니다. 레벨별로 풀면 좋은 문제와 핵심 알고리즘을...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-info-bg); color: var(--cat-info);">태</div>
+                    임태현
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">3월 4일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      176
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      22
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 10 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-free"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-free">자유</span>
+                  <h3 class="post-title">이번 학기 수강 추천 (컴공 3학년)</h3>
+                </div>
+                <p class="post-preview">3학년 2학기 수강신청 고민 중인데, 운영체제랑 컴퓨터네트워크 같이 들어도 괜찮을까요? 과제량이...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-free-bg); color: var(--cat-free);">은</div>
+                    송은지
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">3월 4일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      61
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      16
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- 이전 -->
+        <div class="date-group">
+          <div class="date-label">이전</div>
+          <div class="post-list">
+            <!-- 게시글 11 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-info"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-info">정보</span>
+                  <h3 class="post-title">AWS 프리티어로 개인 프로젝트 배포하기 (EC2 + RDS)</h3>
+                </div>
+                <p class="post-preview">개인 프로젝트를 AWS 프리티어로 배포한 경험을 공유합니다. EC2 인스턴스 설정부터 RDS 연결까지...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-info-bg); color: var(--cat-info);">도</div>
+                    윤도현
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">2월 28일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      234
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      19
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 12 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-free"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-free">자유</span>
+                  <h3 class="post-title">IGRUS MT 후기 (너무 재밌었어요!)</h3>
+                </div>
+                <p class="post-preview">지난 주말 MT 다녀왔는데 정말 재밌었습니다! 레크리에이션도 재밌었고 BBQ도 맛있었어요. 사진 공유...</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-free-bg); color: var(--cat-free);">수</div>
+                    조수빈
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">2월 27일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      145
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      28
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <!-- 게시글 13 -->
+            <article class="post-card">
+              <div class="post-category-bar bar-question"></div>
+              <div class="post-body">
+                <div class="post-top-row">
+                  <span class="category-badge badge-question">질문</span>
+                  <h3 class="post-title">Git 브랜치 전략 어떤 걸 쓰시나요?</h3>
+                </div>
+                <p class="post-preview">팀 프로젝트에서 Git 브랜치 전략을 정하려고 하는데, Git Flow와 GitHub Flow 중 어떤 걸 추천하시나요?</p>
+                <div class="post-footer">
+                  <div class="post-author">
+                    <div class="author-avatar" style="background: var(--cat-question-bg); color: var(--cat-question);">재</div>
+                    황재민
+                  </div>
+                  <div class="post-meta">
+                    <span class="post-stat">2월 25일</span>
+                    <span class="post-stat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      73
+                    </span>
+                    <span class="post-stat has-comments">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      13
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- 페이지네이션 -->
+      <nav class="pagination">
+        <button class="page-btn" disabled aria-label="이전 페이지">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn">5</button>
+        <button class="page-btn" aria-label="다음 페이지">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </nav>
+    </main>
+
+    <!-- 풋터 -->
+    <footer class="footer">
+      &copy; 2026 IGRUS — 인하대학교 컴퓨터공학과 프로그래밍 동아리
+    </footer>
+  </div>
+
+  <!-- 글쓰기 FAB -->
+  <button class="write-fab" aria-label="글쓰기">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    글쓰기
+  </button>
+
+  <!-- 다크모드 FAB -->
+  <button class="theme-fab" id="themeFab" aria-label="다크모드 토글">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+
+  <script>
+    // 다크모드 토글
+    const themeFab = document.getElementById('themeFab');
+    themeFab.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    // 모바일 사이드바 토글
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    menuBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+    });
+
+    // 필터 칩 토글
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
